@@ -1,0 +1,21 @@
+﻿<Window x:Class="transport.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:transport"
+        mc:Ignorable="d"
+        Title="SPEED CONDOR PC" Height="300" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterScreen"     >
+    <StackPanel Orientation="Vertical">
+        <Image Source="/Resources/logo.png" Width="200"/>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Usuário: " Margin="20,0,0,0" FontSize="24"/>
+            <TextBox x:Name="loginUserTextBox" Width="260" FontSize="22" VerticalAlignment="Center"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Senha:   " Margin="20,0,0,0" FontSize="24" Width="102"/>
+            <PasswordBox x:Name="loginPassTextBox" Width="260" FontSize="22" VerticalAlignment="Center"/>
+        </StackPanel>
+        <Button Content="Logon" Height="48" Margin="227,10,0,0" FontSize="22" Click="Button_Click" HorizontalAlignment="Left" Width="155"/>
+    </StackPanel>
+</Window>

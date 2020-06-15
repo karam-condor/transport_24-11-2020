@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "transport", "transport\transport.csproj", "{5B09B17C-02D8-473F-ABD5-55FB0B1AADBA}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Speed Condor Downloader", "Speed Condor Downloader\Speed Condor Downloader.vdproj", "{74FFF44F-AF60-489B-92CD-C9736E9E649C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5B09B17C-02D8-473F-ABD5-55FB0B1AADBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B09B17C-02D8-473F-ABD5-55FB0B1AADBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B09B17C-02D8-473F-ABD5-55FB0B1AADBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B09B17C-02D8-473F-ABD5-55FB0B1AADBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74FFF44F-AF60-489B-92CD-C9736E9E649C}.Debug|Any CPU.ActiveCfg = Debug
+		{74FFF44F-AF60-489B-92CD-C9736E9E649C}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {54053325-2CF1-4B90-83ED-E736EE58D835}
+	EndGlobalSection
+EndGlobal

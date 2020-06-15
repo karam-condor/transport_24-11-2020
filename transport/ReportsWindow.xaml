@@ -1,0 +1,259 @@
+﻿<Window x:Class="transport.ReportsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
+        xmlns:local="clr-namespace:transport"
+        mc:Ignorable="d"
+        Title="Entregas" Height="600" Width="1200" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+    <Window.Resources>
+        <ControlTemplate x:Key="CutomPushpinTemplate2" TargetType="m:Pushpin">
+            <Grid x:Name="ContentGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="-20" Width="33" Height="33">
+                        <Rectangle HorizontalAlignment="left" Margin="-0.208,13.238,0,-0.146" Width="10.555" Fill="#FF005167" RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform AngleX="-23"/>
+                                    <RotateTransform Angle="-12.944"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+
+                        <Rectangle Fill="White" Stroke="#FF005167" RadiusX="5" RadiusY="5"/>
+
+                        <ContentPresenter HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                Content="{TemplateBinding Content}"
+                                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                                Margin="0" TextBlock.FontFamily="Segoe UI" TextBlock.FontWeight="Bold" TextBlock.Foreground="red">
+                        </ContentPresenter>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </ControlTemplate>
+        <Image x:Key="play" Source="/Resources/play.png" Height="19" Width="19"/>
+        <Image x:Key="pause" Source="/Resources/pause.png" Height="19" Width="19"/>
+    </Window.Resources>
+
+
+
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="348"/>
+            <ColumnDefinition Width="446"/>
+            <ColumnDefinition Width="1"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TabControl Grid.Column="0" Grid.ColumnSpan="2" >
+            <TabItem Header="Historico de entregas por carga">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="234*"/>
+                        <ColumnDefinition Width="35*"/>
+                        <ColumnDefinition Width="121*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="2"/>
+                        <RowDefinition Height="3*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Grid.ColumnSpan="3" Margin="0,1" Grid.RowSpan="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120*"/>
+                            <ColumnDefinition Width="113*"/>
+                            <ColumnDefinition Width="18*"/>
+                            <ColumnDefinition Width="169*"/>
+                            <ColumnDefinition Width="60*"/>
+                            <ColumnDefinition Width="308*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock HorizontalAlignment="Left" Margin="6,8,0,0" TextWrapping="Wrap" Text="Carregamento" VerticalAlignment="Top" Height="16" Width="80"/>
+                        <TextBlock HorizontalAlignment="Left" Margin="6,38,0,0" TextWrapping="Wrap" Text="Cod motorista" VerticalAlignment="Top" Height="16" Width="76"/>
+                        <TextBlock HorizontalAlignment="Left" Margin="0,8,0,0" TextWrapping="Wrap" Text="Data saida" VerticalAlignment="Top" Height="16" Width="60" Grid.Column="4"/>
+                        <TextBlock Margin="0,38,0,0" TextWrapping="Wrap" Text="Data final" VerticalAlignment="Top" Height="16" Grid.Column="4"/>
+                        <TextBlock HorizontalAlignment="Left" Margin="6,64,0,0" TextWrapping="Wrap" Text="Motorista" VerticalAlignment="Top" Height="16" Width="58"/>
+                        <TextBlock HorizontalAlignment="Left" Margin="6,92,0,0" TextWrapping="Wrap" Text="KM" VerticalAlignment="Top" Height="16" Width="18"/>
+                        <TextBox x:Name="cargaTextBox" Height="26" Margin="0,6,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15" TextChanged="textJustNumber_TextChanged" Grid.Column="1" Grid.ColumnSpan="3" />
+                        <TextBox x:Name="codMotoTextBox" Height="26" Margin="0,35,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="3"/>
+                        <TextBox x:Name="motoTextBox" Height="26" Margin="0,62,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="3"/>
+
+                        <TextBox x:Name="kmTextBox" Height="26" Margin="0,90,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="3"/>
+                        <TextBox x:Name="dtFinalTextBox" Height="26" Margin="0,35,30,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="5"/>
+                        <TextBox x:Name="dtIncialTextBox" Height="26" Margin="0,4,30,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="5"/>
+                        <Rectangle Stroke="#373737" StrokeThickness="2" Grid.ColumnSpan="6" />
+                        <Button x:Name="searchButton" Content="Pesquisar" Margin="165,90,0,0" VerticalAlignment="Top" Height="25"  Click="searchButton_Click" Grid.Column="5" HorizontalAlignment="Left" Width="113"/>
+                    </Grid>
+                    <Grid Grid.Row="2" Grid.ColumnSpan="3">
+                        <TextBlock Text="Produtos" Padding="3,0,0,0"  FontSize="12" Grid.Row="4"/>
+                        <DataGrid x:Name="notaDataGrid" Grid.Row="5" GridLinesVisibility="All" HorizontalGridLinesBrush="#FF373737" SelectionMode="Extended" IsReadOnly="True" 
+                                  CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2">
+                            <DataGrid.Resources>
+                                <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
+                                    <Setter Property="Background" Value="#01acc2" />
+                                </Style>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
+                                    Color="#01acc2"/>
+                            </DataGrid.Resources>
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="{x:Type DataGridColumnHeader}">
+                                    <Setter Property="FontWeight"  Value="Bold" />
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
+                        </DataGrid>
+
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Pesquisa por notas">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="2"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="0,9,0,261.5" Grid.RowSpan="3">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="3*"/>
+                            <RowDefinition Height="7*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="20*"/>
+                            <ColumnDefinition Width="41*"/>
+                            <ColumnDefinition Width="199*"/>
+                            <ColumnDefinition Width="56*"/>
+                            <ColumnDefinition Width="16*"/>
+                            <ColumnDefinition Width="457*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="notaTextBox" Height="26" Margin="46.5,4,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15" TextChanged="textJustNumber_TextChanged" Grid.Column="2" HorizontalAlignment="Left" Width="141"/>
+                        <Button x:Name="searchButtonNotas" Content="Pesquisar" Margin="343,45,0,0" VerticalAlignment="Top" Height="25" Click="searchButtonNotas_Click" Grid.Column="5" HorizontalAlignment="Left" Width="102" Grid.Row="0"/>
+                        <TextBox x:Name="processTextBox" Height="26" Margin="46.5,35,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15" TextChanged="textJustNumber_TextChanged" Grid.Column="2" HorizontalAlignment="Left" Width="141" Grid.Row="0"/>
+                        <TextBlock Margin="5,41,0,0" TextWrapping="Wrap" Text="Cod occurencia" VerticalAlignment="Top" RenderTransformOrigin="0.733,2.167" Grid.ColumnSpan="3" Height="16" HorizontalAlignment="Left" Width="82" Grid.Row="0"/>
+                        <DatePicker x:Name="dtIncialPicker" Margin="3,4,0,0" Grid.Column="5" HorizontalAlignment="Left" Width="121" Height="26" VerticalAlignment="Top" Grid.Row="0"/>
+                        <TextBlock HorizontalAlignment="Left" Margin="22,8,0,0" TextWrapping="Wrap" Text="Dt.Incial" VerticalAlignment="Top" Grid.Column="3" Grid.ColumnSpan="2" Height="16" Width="43" Grid.Row="0"/>
+                        <TextBlock HorizontalAlignment="Left" Margin="22,40,0,0" TextWrapping="Wrap" Text="Dt.final" VerticalAlignment="Top" Grid.Column="3" Grid.ColumnSpan="2" Height="16" Width="38" Grid.Row="0"/>
+                        <Rectangle Grid.ColumnSpan="3" Margin="0,5,158,185" Grid.Row="1"/>
+                        <DatePicker x:Name="dtFinalPicker" Margin="3,35,0,0" Grid.Column="5" HorizontalAlignment="Left" Width="121" Height="26" VerticalAlignment="Top" Grid.Row="0"/>
+                        <TextBlock Margin="5,8,0,0" TextWrapping="Wrap" Text="Nota fiscal" VerticalAlignment="Top" Grid.ColumnSpan="3" Height="16" HorizontalAlignment="Left" Width="56" Grid.Row="0"/>
+
+                        <GroupBox Header="Filtros" Height="100" VerticalAlignment="Top" Grid.ColumnSpan="6" Margin="0,-15,0,0" Grid.Row="0" Grid.RowSpan="2" >
+                        </GroupBox>
+                        <CheckBox x:Name="perfeitoCheckBox" Content="S/divergencia" FontSize="8"  Grid.Column="5" Margin="127,4,0,0" IsChecked="True" HorizontalAlignment="Left" Width="93" Height="20" VerticalAlignment="Top" Grid.Row="0" />
+                        <CheckBox x:Name="devolucaoTotalCheckBox" Content="Devolução total" FontSize="8" Grid.Column="5" Margin="127,24,0,0" IsChecked="True" HorizontalAlignment="Left" Width="93" Height="22" VerticalAlignment="Top" Grid.Row="0"/>
+                        <CheckBox x:Name="reentregaCheckBox" Content="Re-entrega" FontSize="8" Grid.Column="5" Margin="127,46,0,0" IsChecked="True" HorizontalAlignment="Left" Width="93" Height="24" VerticalAlignment="Top" Grid.Row="0"/>
+                        <CheckBox x:Name="devolucaoParcialCheckBox" Content="Devolução parcial ou pendencia" Grid.Column="5" FontSize="8" Margin="225,4,0,0" IsChecked="True" HorizontalAlignment="Left" Width="206" Height="21" VerticalAlignment="Top" Grid.Row="0"/>
+                        <GroupBox Header="Informação de entrega" Grid.ColumnSpan="6" Height="177" VerticalAlignment="Top" Grid.Row="1" HorizontalAlignment="Left" Width="564" Margin="0,5,0,0">
+                        </GroupBox>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Margin="10,21,-72,0" TextWrapping="Wrap" Text="Obs motorista" HorizontalAlignment="Left" Width="82" Height="16" VerticalAlignment="Top" Grid.Column="0"/>
+                            <TextBox x:Name="obsMotoTextBox" Margin="0,42,-328,0" TextWrapping="Wrap" FontSize="15" 
+                                 IsReadOnly="True" MouseDoubleClick="obsMotoTextBox_MouseDoubleClick" Height="23" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Right" Width="323"/>
+                            <TextBlock Margin="10,70,-72,0" TextWrapping="Wrap" Text="Obs cliente" HorizontalAlignment="Left" Width="82" Height="16" VerticalAlignment="Top" Grid.Column="0" Grid.ColumnSpan="2"/>
+                            <TextBox x:Name="obsCliTextBox" Margin="0,87,-328,0" TextWrapping="Wrap" FontSize="15"  Grid.Column="1"
+                                 IsReadOnly="True" MouseDoubleClick="obsCliTextBox_MouseDoubleClick" Height="23" VerticalAlignment="Top" HorizontalAlignment="Right" Width="323"/>
+                            <TextBlock Margin="10,120,-72,0" TextWrapping="Wrap" Text="Email cliente" HorizontalAlignment="Left" Width="82" Height="16" VerticalAlignment="Top" Grid.Column="0" Grid.ColumnSpan="2"/>
+                            <TextBox x:Name="emailCliTextBox" Margin="0,142,-328,0" TextWrapping="Wrap" FontSize="15"  Grid.Column="1"
+                                 IsReadOnly="True" MouseDoubleClick="obsCliTextBox_MouseDoubleClick" Height="23" VerticalAlignment="Top" HorizontalAlignment="Right" Width="323"/>
+                            <Border Background="#373737" BorderThickness="2" CornerRadius="8" Margin="0,79,-541,0" HorizontalAlignment="Right" Width="208" Grid.Column="1" Height="38" VerticalAlignment="Top"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,77,-520,0" Height="40" VerticalAlignment="Top" HorizontalAlignment="Right" Width="174" Grid.Column="1">
+                                <Polygon Margin="5,5,0,0"  Fill="LightGray" Stroke="Black" StrokeThickness=".5" StrokeLineJoin="Round" Width="29" Stretch="Fill" Points="9,2 11,7 17,7 12,10 14,15 9,12 4,15 6,10 1,7 7,7" x:Name="star1" Height="30" VerticalAlignment="Top"/>
+                                <Polygon Margin="5,5,0,0"  Fill="LightGray" Stroke="Black" StrokeThickness=".5" StrokeLineJoin="Round" Width="29" Stretch="Fill" Points="9,2 11,7 17,7 12,10 14,15 9,12 4,15 6,10 1,7 7,7" x:Name="star2" Height="30" VerticalAlignment="Top"/>
+                                <Polygon Margin="5,5,0,0"  Fill="LightGray" Stroke="Black" StrokeThickness=".5" StrokeLineJoin="Round" Width="29" Stretch="Fill" Points="9,2 11,7 17,7 12,10 14,15 9,12 4,15 6,10 1,7 7,7" x:Name="star3" Height="30" VerticalAlignment="Top"/>
+                                <Polygon Margin="5,5,0,0"  Fill="LightGray" Stroke="Black" StrokeThickness=".5" StrokeLineJoin="Round" Width="29" Stretch="Fill" Points="9,2 11,7 17,7 12,10 14,15 9,12 4,15 6,10 1,7 7,7" x:Name="star4" Height="30" VerticalAlignment="Top"/>
+                                <Polygon Margin="5,5,0,0"  Fill="LightGray" Stroke="Black" StrokeThickness=".5" StrokeLineJoin="Round" Width="29" Stretch="Fill" Points="9,2 11,7 17,7 12,10 14,15 9,12 4,15 6,10 1,7 7,7" x:Name="star5" Height="30" VerticalAlignment="Top"/>
+                            </StackPanel>
+                            <Border Background="#373737" BorderThickness="2" CornerRadius="8" Margin="0,38,-541,0" Height="30" VerticalAlignment="Top" HorizontalAlignment="Right" Width="208" Grid.Column="1"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,33,-529,0" Height="41" VerticalAlignment="Top" HorizontalAlignment="Right" Width="196" Grid.Column="1">
+                                <Button x:Name="buttonPlay" Width="23" Height="23" Margin="7,0,0,0" Background="#373737" Click="buttonPlay_Click" >
+                                    <Image Source="/Resources/play.png"/>
+                                </Button>
+                                <Button x:Name="buttonStop" Width="23" Height="23" Margin="2,0,0,0" Background="#373737" Click="buttonStop_Click">
+                                    <Image Source="/Resources/stop.png"/>
+                                </Button>
+                                <TextBlock Name="timerText" Text="00:00"  Height="20" Foreground="Yellow" Margin="40,0,0,0"></TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Grid.Column="1">
+
+                            </StackPanel>
+                            <GroupBox Header="Vincular pendencia com carregamento" Margin="551,5,-766,0" Height="175" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Center" Width="220" IsEnabled="False"/>
+                            <TextBlock Margin="564,44,-653,0" TextWrapping="Wrap" Text="N° Carregamento" HorizontalAlignment="Left" Width="94" Grid.Column="1" Height="16" VerticalAlignment="Top"/>
+                            <TextBox x:Name="cargaVinculTextBox" Grid.Column="1" Margin="638,69,-756,0" TextChanged="textJustNumber_TextChanged" Height="26" VerticalAlignment="Top"/>
+                            <Button x:Name="buttonVincularCarga" Content="Vincular" HorizontalAlignment="Left" Margin="638,105,-756,0" Width="123" Grid.Column="1" Height="29" VerticalAlignment="Top" Click="buttonVincularCarga_Click"/>
+                        </Grid>
+
+                    </Grid>
+                    <GridSplitter Height="2"  HorizontalAlignment="Stretch" Grid.Row="1" Background="#373737"/>
+                    <Grid Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="15"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="15"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Notas" Padding="3,0,0,0"  FontSize="12" Grid.Row="0"/>
+                        <DataGrid x:Name="notaDataGrid2" Grid.Row="1"   GridLinesVisibility="All" HorizontalGridLinesBrush="Black" SelectionMode="Extended" IsReadOnly="True" 
+                                  CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2" SelectedCellsChanged="notaDataGrid2_SelectedCellsChanged" CanUserSortColumns="False"
+                                  MouseDoubleClick="notaDataGrid2_MouseDoubleClick">
+                            <DataGrid.Resources>
+                                <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
+                                    <Setter Property="Background" Value="#01acc2" />
+                                </Style>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
+                                    Color="#01acc2"/>
+                            </DataGrid.Resources>
+
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="{x:Type DataGridColumnHeader}">
+                                    <Setter Property="FontWeight"  Value="Bold" />
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
+
+
+                        </DataGrid>
+                        <TextBlock Text="Produtos" Padding="3,0,0,0"  FontSize="12" Grid.Row="2"/>
+                        <DataGrid x:Name="prodDataGrid" Grid.Row="3" GridLinesVisibility="all" HorizontalGridLinesBrush="#FF373737" SelectionMode="Extended" IsReadOnly="True" 
+                                  CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2">
+                            <DataGrid.Resources>
+                                <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
+                                    <Setter Property="Background" Value="#01acc2" />
+                                </Style>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
+                                    Color="#01acc2"/>
+                            </DataGrid.Resources>
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="{x:Type DataGridColumnHeader}">
+                                    <Setter Property="FontWeight"  Value="Bold" />
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
+                        </DataGrid>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+
+
+        </TabControl>
+        <Border Background="#373737" Grid.Column="3"/>
+        <m:Map x:Name="mapView" CredentialsProvider="WfxFWb3dXmy4JnWw1kpG~FX_KaKXZ4wVgHduN5YpQPA~AjA8yf6Z3F4887_kgWPSipd2CFpPUlcyQRROzDqa2bPx0iK9T3BqHL0odYJ80aMD " 
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3"  Margin="5" />
+
+
+
+
+    </Grid>
+</Window>

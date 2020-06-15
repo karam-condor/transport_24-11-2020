@@ -1,0 +1,15 @@
+﻿<Window x:Class="transport.SelectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:transport"
+        mc:Ignorable="d"
+        Title="SelectWindow" Height="280" Width="300" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" >
+    <StackPanel Orientation="Vertical">
+        <Image Source="/Resources/logo.png" Width="200"/>
+        <Button x:Name="button_monitor" Content="MONITORAMENTO LIVE" FontSize="18" Margin="10,10,10,0" Click="button_monitor_Click"/>
+        <Button x:Name="button_report" Content="ENTREGAS" FontSize="18" Margin="10,10,10,0" Click="button_report_Click"/>
+        <Button x:Name="button_config" Content="Configuração" FontSize="18" Margin="10,10,10,0" Click="button_config_Click"/>
+    </StackPanel>
+</Window>

@@ -1,0 +1,48 @@
+﻿<Window x:Class="transport.ConfigurationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:transport"
+        mc:Ignorable="d"
+        Title="Configuração" Height="600" Width="800" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Loaded="Window_Loaded">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Orientation="Vertical" Grid.Column="1">
+            <Button x:Name="deleteButton" Content="Apagar" Margin="0,5,0,0" Click="deleteButton_Click"/>
+            <Button x:Name="tokenButton" Content="Gerar novo token" Margin="0,5,0,0" Click="tokenButton_Click"/>
+            <TextBlock Background="#373737" Text="Novo usuario" Foreground="AliceBlue" Padding="3,0,0,0"/>
+            <TextBlock Text="Usuario" Padding="1,0,0,0"/>
+            <TextBox x:Name="userTextBox"/>
+            <TextBlock Text="Senha" Padding="1,0,0,0"/>
+            <PasswordBox x:Name="passworkTextBox"/>
+            <TextBlock Text="Tipo" Padding="1,0,0,0"/>
+            <ComboBox x:Name="typeComboBox">
+                <ComboBoxItem Content="APP"/>
+                <ComboBoxItem Content="ROTINA"/>
+            </ComboBox>
+            <Button x:Name="saveButton" Content="Adicionar" Margin="0,5,0,0" Click="saveButton_Click"/>
+        </StackPanel>
+        <DataGrid x:Name="usersDataGrid" Grid.Column="0" GridLinesVisibility="All" HorizontalGridLinesBrush="#FF373737" SelectionMode="Extended" IsReadOnly="True" 
+                                  CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2" CanUserSortColumns="False" SelectedCellsChanged="usersDataGrid_SelectedCellsChanged">
+            <DataGrid.Resources>
+                <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
+                    <Setter Property="Background" Value="#01acc2" />
+                </Style>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
+                                    Color="#01acc2"/>
+            </DataGrid.Resources>
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="{x:Type DataGridColumnHeader}">
+                    <Setter Property="FontWeight"  Value="Bold" />
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+        </DataGrid>
+    </Grid>
+</Window>

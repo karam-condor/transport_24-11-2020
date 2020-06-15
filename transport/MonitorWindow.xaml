@@ -1,0 +1,112 @@
+﻿<Window x:Class="transport.MonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
+        mc:Ignorable="d"
+        Title="MONITORAMENTO DE CARGAS" Height="450" Width="800" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" WindowState="Maximized" >
+    <Window.Resources>
+        <ControlTemplate x:Key="CutomPushpinTemplate" TargetType="m:Pushpin">
+            <Grid x:Name="ContentGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Grid Margin="-20" Width="55" Height="33">
+                        <Rectangle HorizontalAlignment="left" Margin="-0.208,13.238,0,-0.146" Width="10.555" Fill="#FF005167" RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform AngleX="-23"/>
+                                    <RotateTransform Angle="-12.944"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+
+                        <Rectangle Fill="White" Stroke="#FF005167" RadiusX="5" RadiusY="5"/>
+
+                        <ContentPresenter HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"
+                                                                Content="{TemplateBinding Content}"
+                                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                                Margin="0" TextBlock.FontFamily="Segoe UI" TextBlock.FontWeight="Bold" TextBlock.Foreground="red">
+                        </ContentPresenter>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </ControlTemplate>
+    </Window.Resources>
+    
+    
+    
+    
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="5*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="23*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+
+            <ScrollViewer Grid.Row="0" Background="AliceBlue">
+                <StackPanel Margin="5">
+                    <ItemsControl Name="chartListView" >
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="140" Height="180" Background="#33364c" Margin="5" >
+                                    <Border.Effect>
+                                        <DropShadowEffect Opacity="0.3" BlurRadius="20"/>
+                                    </Border.Effect>
+                                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding numCarga}" Width="140"  FontSize="20" Foreground="AliceBlue" Margin="0,4,0,2" TextAlignment="Center"/>
+                                        <TextBlock Text="{Binding emTransito}" Width="126" Height="40" FontSize="20" Background="#0836c1" Foreground="AliceBlue" Margin="0,0,0,2" TextAlignment="Center">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect Direction="315.2" BlurRadius="1" ShadowDepth="1.5" Opacity="0.7"/>
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                        <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding Perfeito}" Margin="3" Width="60" Height="40" FontSize="20" Foreground="AliceBlue" Background="#57a580" TextAlignment="Center">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect Direction="315.2" BlurRadius="1" ShadowDepth="1.5" Opacity="0.7"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Pendencia}" Margin="3" Width="60" Height="40" FontSize="20" Foreground="AliceBlue" Background="#ffa146" TextAlignment="Center">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect Direction="315.2" BlurRadius="1" ShadowDepth="1.5" Opacity="0.7"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding Rentrega}" Margin="3" Width="60" Height="40" FontSize="20" Foreground="AliceBlue" Background="#efbe1e" TextAlignment="Center">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect Direction="315.2" BlurRadius="1" ShadowDepth="1.5" Opacity="0.7"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Devoluçao}" Margin="3" Width="60" Height="40" FontSize="20" Foreground="AliceBlue" Background="#ff4350" TextAlignment="Center">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect Direction="315.2" BlurRadius="1" ShadowDepth="1.5" Opacity="0.7"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <CheckBox x:Name="cargas_refrech_checkBox" Grid.Row="1" 
+                      Content="Atualização automatica" FontSize="10"
+                      Background="#373737" Foreground="#373737"/>
+        </Grid>
+        <GridSplitter Width="5" HorizontalAlignment="Stretch" Grid.Column="1"/>
+        <Border Background="#373737" Grid.Column="2"/>
+        <m:Map x:Name="mapView" CredentialsProvider="WfxFWb3dXmy4JnWw1kpG~FX_KaKXZ4wVgHduN5YpQPA~AjA8yf6Z3F4887_kgWPSipd2CFpPUlcyQRROzDqa2bPx0iK9T3BqHL0odYJ80aMD " 
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"  Margin="5" />
+    </Grid>
+</Window>
