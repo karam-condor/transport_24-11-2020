@@ -23,7 +23,8 @@
             <TextBlock Text="Tipo" Padding="1,0,0,0"/>
             <ComboBox x:Name="typeComboBox">
                 <ComboBoxItem Content="APP"/>
-                <ComboBoxItem Content="ROTINA"/>
+                <ComboBoxItem Content="ROTINA(TRANSPORTE)"/>
+                <ComboBoxItem Content="ROTINA(PENDENCIA)"/>
             </ComboBox>
             <Button x:Name="saveButton" Content="Adicionar" Margin="0,5,0,0" Click="saveButton_Click"/>
         </StackPanel>

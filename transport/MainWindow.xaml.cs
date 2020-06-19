@@ -36,7 +36,7 @@ namespace transport
             {
                 OracleParameter parameter = new OracleParameter();
 
-                DataTable dt = dbconnecttion.readByAdapter("SELECT * FROM LOGTRANSUSU WHERE USUARIO = :USUARIO AND CARGO IN ('LO','AD')" ,
+                DataTable dt = dbconnecttion.readByAdapter("SELECT * FROM LOGTRANSUSU WHERE USUARIO = :USUARIO AND CARGO IN ('AD','TR','PD')",
                     new string[]{":USUARIO"}, new string[] {user});
                 if (dt != null)
                 {
@@ -76,10 +76,6 @@ namespace transport
                 MessageBox.Show("Insere usuário ou senha","Erro",MessageBoxButton.OK,MessageBoxImage.Error);
             }
             
-        }
-
-  
-
-      
+        }      
     }
 }

@@ -6,8 +6,7 @@
         xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
         xmlns:local="clr-namespace:transport"
         mc:Ignorable="d"
-        Title="Entregas" Height="600" Width="1200" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
-    <Window.Resources>
+        Title="Entregas" Height="600" Width="1200" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">    <Window.Resources>
         <ControlTemplate x:Key="CutomPushpinTemplate2" TargetType="m:Pushpin">
             <Grid x:Name="ContentGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
@@ -186,10 +185,11 @@
                             <StackPanel Orientation="Vertical" Grid.Column="1">
 
                             </StackPanel>
-                            <GroupBox Header="Vincular pendencia com carregamento" Margin="551,5,-766,0" Height="175" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Center" Width="220" IsEnabled="False"/>
+                            <GroupBox Header="Vincular pendencia com carregamento" Margin="551,5,-766,0" Height="137" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Center" Width="220" IsEnabled="False"/>
                             <TextBlock Margin="564,44,-653,0" TextWrapping="Wrap" Text="N° Carregamento" HorizontalAlignment="Left" Width="94" Grid.Column="1" Height="16" VerticalAlignment="Top"/>
-                            <TextBox x:Name="cargaVinculTextBox" Grid.Column="1" Margin="638,69,-756,0" TextChanged="textJustNumber_TextChanged" Height="26" VerticalAlignment="Top"/>
-                            <Button x:Name="buttonVincularCarga" Content="Vincular" HorizontalAlignment="Left" Margin="638,105,-756,0" Width="123" Grid.Column="1" Height="29" VerticalAlignment="Top" Click="buttonVincularCarga_Click"/>
+                            <TextBox x:Name="cargaVinculTextBox" Grid.Column="1" Margin="556,69,-756,0" TextChanged="textJustNumber_TextChanged" Height="26" VerticalAlignment="Top"/>
+                            <Button x:Name="buttonVincularCarga" Content="Vincular" HorizontalAlignment="Left" Margin="556,105,-756,0" Width="205" Grid.Column="1" Height="29" VerticalAlignment="Top" Click="buttonVincularCarga_Click" IsEnabled="False"/>
+                            <Button x:Name="buttonEXportExcel" Content="Exportar grid para excel" HorizontalAlignment="Left" Margin="556,147,-757,0" Width="206" Grid.Column="1" Click="buttonEXportExcel_Click" Height="29" VerticalAlignment="Top"/>
                         </Grid>
 
                     </Grid>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maps.MapControl.WPF;
+using Microsoft.Win32;
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
+
 namespace transport
 {
     /// <summary>
@@ -30,6 +32,7 @@ namespace transport
         int counter = 0;
         MediaPlayer mediaPlayer;
         DispatcherTimer timer;
+        bool pendencia_user_check = false;
         public ReportsWindow()
         {
             InitializeComponent();
@@ -140,11 +143,11 @@ namespace transport
             {
                 stopAudio();
                 DBConnection connection = new DBConnection();                
-                notaTable2 = connection.readByAdapter("select CODPROCESS Cod_Entrega,case when status = 0 then ''  when status = 1  then 'Perfeito' when status = 2  then 'Pendencia ou devolução parcial' when status = 3 then 'Devolução' when status = 4 then 'Re-entrega' end as status,NUMCAR N_CARREGAMENTO, NUMNOTA NF,LAT,LONGT,DTENTREGA DT_ENTREGA,EMAIL_CLIENTE, OBSENT OBS_ENTREGA,AVALICAO,CLICOMENT,case when status = 1 then '' else to_char(CODMOTIVO) end COD_MOTIVO, case when status = 1 then '' else B.MOTIVO end MOTIVO,DTSTATUS1 DT_EMISSAO, DTSTATUS2, DTSTATUS3, DTSTATUS4, CARGAVINCUL Carregamento_Vinculado,CASE WHEN  STCRED=1  THEN 'Gerar crédito' ELSE '' END AS CREDITO FROM LOGTRANSPROCESS A, PCTABDEV @WINT B WHERE A.NUMNOTA LIKE CASE WHEN :NUMNOTA IS NULL THEN '%' ELSE: NUMNOTA END AND A.CODPROCESS LIKE CASE WHEN :CODPROCESS IS NULL THEN '%' ELSE: CODPROCESS END  AND A.CODMOTIVO = B.CODDEVOL AND A.DTENTREGA >= TO_DATE(:DTINCIAL, 'YYYY/MM/DD HH24:MI:SS') AND A.DTENTREGA <= TO_DATE(:DTFINAL,'YYYY/MM/DD HH24:MI:SS') AND A.STATUS IN(" + getStatusConditions() + ") order by A.DTENTREGA", new string[] {":NUMNOTA" , ":CODPROCESS" , ":DTINCIAL", ":DTFINAL" }, new string[] { notaTextBox.Text, processTextBox.Text,dtIncialPicker.SelectedDate.Value.ToString("yyyy/MM/dd"), dtFinalPicker.SelectedDate.Value.AddDays(1).ToString("yyyy/MM/dd")});
+                notaTable2 = connection.readByAdapter("select NUMTRANSVENDA,CODPROCESS Cod_Entrega,case when status = 0 then ''  when status = 1  then 'Perfeito' when status = 2  then 'Pendencia ou devolução parcial' when status = 3 then 'Devolução' when status = 4 then 'Re-entrega' end as status,NUMCAR N_CARREGAMENTO, NUMNOTA NF,LAT,LONGT,DTENTREGA DT_ENTREGA,EMAIL_CLIENTE, OBSENT OBS_ENTREGA,AVALICAO,CLICOMENT,case when status = 1 then '' else to_char(CODMOTIVO) end COD_MOTIVO, case when status = 1 then '' else B.MOTIVO end MOTIVO,DTSTATUS1 DT_EMISSAO, DTSTATUS2 DATA_VINCULAR, (select a.dtstatus2 from logtransprocess a where a.codprocess IN (SELECT codprocess FROM (SELECT a.codprocess, ROWNUM num FROM logtransprocess a WHERE a.numtransvenda = NUMTRANSVENDA ORDER BY a.codprocess DESC) WHERE num = 2))  DATA_FINAL, DTSTATUS4, CARGAVINCUL Carregamento_Vinculado,CASE WHEN  STCRED=1  THEN 'Gerar crédito' ELSE '' END AS CREDITO FROM LOGTRANSPROCESS A, PCTABDEV @WINT B WHERE A.NUMNOTA LIKE CASE WHEN :NUMNOTA IS NULL THEN '%' ELSE: NUMNOTA END AND A.CODPROCESS LIKE CASE WHEN :CODPROCESS IS NULL THEN '%' ELSE: CODPROCESS END  AND A.CODMOTIVO = B.CODDEVOL AND A.DTENTREGA >= TO_DATE(:DTINCIAL, 'YYYY/MM/DD HH24:MI:SS') AND A.DTENTREGA <= TO_DATE(:DTFINAL,'YYYY/MM/DD HH24:MI:SS') AND A.STATUS IN(" + getStatusConditions() + ") order by A.DTENTREGA", new string[] {":NUMNOTA" , ":CODPROCESS" , ":DTINCIAL", ":DTFINAL" }, new string[] { notaTextBox.Text, processTextBox.Text,dtIncialPicker.SelectedDate.Value.ToString("yyyy/MM/dd"), dtFinalPicker.SelectedDate.Value.AddDays(1).ToString("yyyy/MM/dd")});
                 if(notaTable2 != null && notaTable2.Rows.Count > 0)
                 {
                     prodDataGrid.ItemsSource = new DataTable().DefaultView;
-                    DataTable dt = notaTable2.DefaultView.ToTable(false, new string[] { "Cod_Entrega", "N_CARREGAMENTO", "NF", "STATUS", "DT_ENTREGA", "OBS_ENTREGA", "COD_MOTIVO", "MOTIVO", "Carregamento_Vinculado", "DT_EMISSAO" ,"CREDITO"});
+                    DataTable dt = notaTable2.DefaultView.ToTable(false, new string[] { "Cod_Entrega", "N_CARREGAMENTO", "NF", "STATUS", "DT_ENTREGA", "OBS_ENTREGA", "COD_MOTIVO", "MOTIVO", "DT_EMISSAO", "Carregamento_Vinculado", "DATA_VINCULAR" ,"CREDITO","DATA_FINAL"});
                     notaDataGrid2.ItemsSource = dt.DefaultView;
                     setLayoutValues(Convert.ToString(notaTable2.Rows[0]["OBS_ENTREGA"]), Convert.ToString(notaTable2.Rows[0]["CLICOMENT"]), Convert.ToString(notaTable2.Rows[0]["EMAIL_CLIENTE"]), notaTable2.Rows[0]["AVALICAO"] == DBNull.Value ? 0 : Convert.ToInt32(notaTable2.Rows[0]["AVALICAO"]));
                 }
@@ -153,18 +156,33 @@ namespace transport
                     notaDataGrid2.ItemsSource = new DataTable().DefaultView;
                     setLayoutValues("", "", "", 0);
                 }
-                
-                
+                               
             }            
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            dtIncialPicker.SelectedDate=DateTime.Now;
+            //Configure layout
+            dtIncialPicker.SelectedDate = DateTime.Now;
             dtFinalPicker.SelectedDate = DateTime.Now;
             buttonPlay.Content = FindResource("play");
+            //Configure permissions
+            switch (Methods.loginType)
+            {
+                case "TR":
+                    buttonVincularCarga.IsEnabled = true;
+                    break;
+                case "PD":
+                    pendencia_user_check = true;
+                    break;
+                case "AD":
+                    buttonVincularCarga.IsEnabled = true;
+                    pendencia_user_check = true;
+                    break;
+            }
         }
 
+        
        
 
         private void clearMap()
@@ -215,7 +233,16 @@ namespace transport
                         if (dt.Rows.Count > 0)
                         {
                             connection = new DBConnection();
-                            connection.write("UPDATE LOGTRANSPROCESS SET CARGAVINCUL = :NUMCAR WHERE CODPROCESS=:CODPROCESS", new string[] { ":NUMCAR", ":CODPROCESS" }, new string[] { cargaVinculTextBox.Text, Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]) });
+                            DataTable dt2 =  connection.readByAdapter("SELECT * FROM LOGTRANSPROCESS WHERE CODPROCESS = :CODPROCESS AND DTSTATUS1 IS NOT NULL", new string[] { ":CODPROCESS" }, new string[] {  Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]) });
+                            if(dt2 != null && dt2.Rows.Count > 0)
+                            {
+                                connection = new DBConnection();
+                                connection.write("UPDATE LOGTRANSPROCESS SET CARGAVINCUL = :NUMCAR,DTSTATUS2 = (SELECT SYSDATE FROM DUAL) WHERE CODPROCESS=:CODPROCESS", new string[] { ":NUMCAR", ":CODPROCESS" }, new string[] { cargaVinculTextBox.Text, Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]) });
+                            }
+                            else
+                            {
+                                MessageBox.Show("Não foi emitida o mapa de separação desta pendencia, vôcê pode vincular carregamento só quando após a emissão");
+                            }                            
                         }
                         else
                         {
@@ -430,58 +457,122 @@ namespace transport
                 selectedNota = notaDataGrid2.SelectedIndex;
                 if(notaTable2.Rows.Count > 0 && selectedNota > -1)
                 {
-                    MessageBoxResult result = MessageBox.Show("Deseja emtir o mapa de separação dessa nota?", "", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    if (result == MessageBoxResult.Yes)
+                    if(pendencia_user_check == true)
                     {
-                        try
+                        MessageBoxResult result = MessageBox.Show("Deseja emtir o mapa de separação dessa nota?", "", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (result == MessageBoxResult.Yes)
                         {
-                            DBConnection connection = new DBConnection();
-                            DataTable dt = connection.readByAdapter("SELECT PROD.CODPROD,PROD.QT, PRODUT.MODULO, PRODUT.RUA, PRODUT.NUMERO, PRODUT.APTO,PRODUT.DESCRICAO,PRODUT.CODFAB,PRODUT.UNIDADE,PRODUT.EMBALAGEM  FROM LOGTRANSPROD PROD, PCPRODUT@WINT PRODUT WHERE PROD.CODPROCESS = :CODPROCESS AND PROD.STDEV = 1 AND PROD.CODPROD = PRODUT.CODPROD order by produt.modulo,produt.rua,produt.numero,produt.apto", new string[] { ":CODPROCESS" }, new string[] { Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]) });
-                            if (dt.Rows.Count > 0)
-                            {                                
-                                PendenciaReport pendenciaReport = new PendenciaReport();
-                                pendenciaReport.setReportWindowInstance(this);
-                                IList<Produto> listReport = new List<Produto>();
-                                foreach(DataRow dr in dt.Rows)
-                                {
-                                    listReport.Add(new Produto
-                                    {
-                                        CODPROD = Convert.ToString(dr["CODPROD"]),
-                                        QT = Convert.ToString(dr["QT"]),
-                                        MODULO = Convert.ToString(dr["MODULO"]),
-                                        RUA = Convert.ToString(dr["RUA"]),
-                                        NUMERO = Convert.ToString(dr["NUMERO"]),
-                                        APTO = Convert.ToString(dr["APTO"]),
-                                        CODFAB = Convert.ToString(dr["CODFAB"]),
-                                        DESCRICAO = Convert.ToString(dr["DESCRICAO"]),
-                                        EMBALAGEM = Convert.ToString(dr["EMBALAGEM"]),
-                                        UNIDADE = Convert.ToString(dr["UNIDADE"])
-                                    });
-                                }                                
-                                pendenciaReport.setListReport(listReport);
-                                pendenciaReport.setDate(DateTime.Now.ToString());
-                                pendenciaReport.setNF(Convert.ToString(notaTable2.Rows[selectedNota]["NF"]));
-                                pendenciaReport.setCod_pendencia(Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]));
-                                this.IsEnabled = false;
-                                this.Focusable = false;
-                                this.Focusable = false;
-                                pendenciaReport.Show();
-                                pendenciaReport.Activate();
-                                //Cadstrar a data de impressão da mapa de separação da pendencia
-                                setDataEmissao(Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]));
-                            }
-                            else
+                            try
                             {
-                                MessageBox.Show("Está nota não teve pendencia","Erro",MessageBoxButton.OK,MessageBoxImage.Error);
+                                DBConnection connection = new DBConnection();
+                                DataTable dt = connection.readByAdapter("SELECT PROD.CODPROD,PROD.QT, PRODUT.MODULO, PRODUT.RUA, PRODUT.NUMERO, PRODUT.APTO,PRODUT.DESCRICAO,PRODUT.CODFAB,PRODUT.UNIDADE,PRODUT.EMBALAGEM  FROM LOGTRANSPROD PROD, PCPRODUT@WINT PRODUT WHERE PROD.CODPROCESS = :CODPROCESS AND PROD.STDEV = 1 AND PROD.CODPROD = PRODUT.CODPROD order by produt.modulo,produt.rua,produt.numero,produt.apto", new string[] { ":CODPROCESS" }, new string[] { Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]) });
+                                if (dt.Rows.Count > 0)
+                                {
+                                    PendenciaReport pendenciaReport = new PendenciaReport();
+                                    pendenciaReport.setReportWindowInstance(this);
+                                    IList<Produto> listReport = new List<Produto>();
+                                    foreach (DataRow dr in dt.Rows)
+                                    {
+                                        listReport.Add(new Produto
+                                        {
+                                            CODPROD = Convert.ToString(dr["CODPROD"]),
+                                            QT = Convert.ToString(dr["QT"]),
+                                            MODULO = Convert.ToString(dr["MODULO"]),
+                                            RUA = Convert.ToString(dr["RUA"]),
+                                            NUMERO = Convert.ToString(dr["NUMERO"]),
+                                            APTO = Convert.ToString(dr["APTO"]),
+                                            CODFAB = Convert.ToString(dr["CODFAB"]),
+                                            DESCRICAO = Convert.ToString(dr["DESCRICAO"]),
+                                            EMBALAGEM = Convert.ToString(dr["EMBALAGEM"]),
+                                            UNIDADE = Convert.ToString(dr["UNIDADE"])
+                                        });
+                                    }
+                                    pendenciaReport.setListReport(listReport);
+                                    pendenciaReport.setDate(DateTime.Now.ToString());
+                                    pendenciaReport.setNF(Convert.ToString(notaTable2.Rows[selectedNota]["NF"]));
+                                    pendenciaReport.setCod_pendencia(Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]));
+                                    this.IsEnabled = false;
+                                    this.Focusable = false;
+                                    this.Focusable = false;
+                                    pendenciaReport.Show();
+                                    pendenciaReport.Activate();
+                                    //Cadstrar a data de impressão da mapa de separação da pendencia
+                                    setDataEmissao(Convert.ToString(notaTable2.Rows[selectedNota]["Cod_Entrega"]));
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Está nota não teve pendencia", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show(ex.Message);
                             }
                         }
-                        catch(Exception ex)
-                        {
-                            MessageBox.Show(ex.Message);
-                        }                        
-                    }                        
+                    }
+                    else
+                    {
+                        MessageBox.Show("Sem permissão", "", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }                                           
                 }
             }            
+        }
+
+        private void buttonEXportExcel_Click(object sender, RoutedEventArgs e)
+        {            
+            if (notaTable2!=null && notaTable2.Rows.Count > 0)
+            {
+                SaveFileDialog dialog = new SaveFileDialog();
+                dialog.Filter = "Arquivos de excel|*.xls";
+                dialog.ShowDialog();
+                String fileName = dialog.FileName;
+                if (fileName != null && fileName != "")
+                {
+                    GenerateExcel(notaTable2, fileName);
+                }                
+            }
+            else
+            {
+                MessageBox.Show("Não há dados para exportar", "", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+
+        public static void GenerateExcel(DataTable dataTable, string path)
+        {
+
+            DataSet dataSet = new DataSet();
+            dataSet.Tables.Add(dataTable);
+
+            // create a excel app along side with workbook and worksheet and give a name to it             
+            Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
+            Microsoft.Office.Interop.Excel.Workbook excelWorkBook = excelApp.Workbooks.Add();
+            Microsoft.Office.Interop.Excel._Worksheet xlWorksheet = excelWorkBook.Sheets[1];
+            Microsoft.Office.Interop.Excel.Range xlRange = xlWorksheet.UsedRange;
+            foreach (DataTable table in dataSet.Tables)
+            {
+                //Add a new worksheet to workbook with the Datatable name  
+                Microsoft.Office.Interop.Excel.Worksheet excelWorkSheet = excelWorkBook.Sheets.Add();
+                excelWorkSheet.Name = table.TableName;
+
+                // add all the columns  
+                for (int i = 1; i < table.Columns.Count + 1; i++)
+                {
+                    excelWorkSheet.Cells[1, i] = table.Columns[i - 1].ColumnName;
+                }
+
+                // add all the rows  
+                for (int j = 0; j < table.Rows.Count; j++)
+                {
+                    for (int k = 0; k < table.Columns.Count; k++)
+                    {
+                        excelWorkSheet.Cells[j + 2, k + 1] = table.Rows[j].ItemArray[k].ToString();
+                    }
+                }
+            }
+            excelWorkBook.SaveAs(path); // -> this will do the custom  
+            excelWorkBook.Close();
+            excelApp.Quit();
         }
 
         private void pauseAudio()

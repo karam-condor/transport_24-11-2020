@@ -28,32 +28,25 @@ namespace transport
             InitializeComponent();            
         }
 
-        
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            loadUseres();
+        }
 
         private void loadUseres()
         {
             DBConnection connection = new DBConnection();
-            usersTable = connection.readByAdapter("SELECT USUARIO,CASE CARGO WHEN 'MO'THEN 'APP' WHEN 'LO' THEN 'ROTINA' END AS TIPO , TOKEN FROM LOGTRANSUSU WHERE CARGO <> 'AD' ORDER BY USUARIO", null, null);
+            usersTable = connection.readByAdapter("SELECT USUARIO,CASE CARGO WHEN 'MO'THEN 'APP' WHEN 'TR' THEN 'ROTINA(TRANSPORTE)' WHEN 'PD' THEN 'ROTINA(PENDENCIA)' END AS TIPO , TOKEN FROM LOGTRANSUSU WHERE CARGO <> 'AD' ORDER BY USUARIO", null, null);
             if(usersTable != null && usersTable.Rows.Count > 0)
             {
                 usersDataGrid.ItemsSource = usersTable.DefaultView;
             }
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (Methods.loginType == "AD")
-            {
-                deleteButton.IsEnabled = true;
-                tokenButton.IsEnabled = true;
+            else{
+                usersDataGrid.ItemsSource = new DataTable().DefaultView;
             }
-            else
-            {
-                deleteButton.IsEnabled = false;
-                tokenButton.IsEnabled = false;
-            }
-            loadUseres();            
         }
+        
 
         private void usersDataGrid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
@@ -116,10 +109,10 @@ namespace transport
                     }
                     else
                     {
-                        MessageBox.Show("Caso usuario do app, o usuario tem que ser so numero (codigo de motorista)", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Caso usuario do app, o campo 'usuario' deve ser preenchido em números (codigo de motorista)", "", MessageBoxButton.OK, MessageBoxImage.Error);
                         typeComboBox.Text = "";
                     }
-                }else if (typeComboBox.SelectedIndex == 1)
+                }else
                 {
                     addUser(userTextBox.Text, passworkTextBox.Password);
                 }
@@ -134,13 +127,18 @@ namespace transport
         private string getType()
         {
             string returned = "";
-            if (typeComboBox.SelectedIndex == 0)
+            switch (typeComboBox.SelectedIndex) 
             {
-                returned = "MO";
-            }else if(typeComboBox.SelectedIndex == 1)
-            {
-                returned = "LO";
-            }
+                case 0:
+                    returned = "MO";
+                    break;
+                case 1:
+                    returned = "TR";
+                    break;
+                case 2:
+                    returned = "PD";
+                    break;
+            }                            
             return returned;
         }
 
@@ -149,11 +147,12 @@ namespace transport
             string CryptedPass = Crypter.Blowfish.Crypt(password);
             string token = Guid.NewGuid().ToString().Substring(0, 6);
             DBConnection connection = new DBConnection();
-            connection.write("INSERT INTO LOGTRANSUSU (USUARIO,SENHA,TOKEN,CARGO) VALUES (:USUARIO,:SENHA,CASE WHEN :CARGO='LO' THEN '000000' else :TOKEN end,:CARGO)",new string[] {":USUARIO",":SENHA",":TOKEN",":CARGO"}, new string[] {user,CryptedPass,token,getType()});
+            connection.write("INSERT INTO LOGTRANSUSU (USUARIO,SENHA,TOKEN,CARGO) VALUES (:USUARIO,:SENHA,CASE WHEN (:CARGO='TR' OR :CARGO='PD') THEN '000000' else :TOKEN end,:CARGO)", new string[] {":USUARIO",":SENHA",":TOKEN",":CARGO"}, new string[] {user,CryptedPass,token,getType()});
             MessageBox.Show("Usuario foi adicionado com sucesso", "", MessageBoxButton.OK, MessageBoxImage.Information);
             userTextBox.Text = "";
             passworkTextBox.Password = "";
             loadUseres();
-        }     
+        }        
     }
 }
+        

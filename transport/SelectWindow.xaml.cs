@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms.VisualStyles;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -41,6 +42,14 @@ namespace transport
         {
             ConfigurationWindow configurationWindow = new ConfigurationWindow();
             configurationWindow.Show();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if(Methods.loginType == "AD")
+            {
+                button_config.IsEnabled = true;
+            }
         }
     }
 }
