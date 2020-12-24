@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:transport"
         mc:Ignorable="d"
-        Title="SelectWindow" Height="280" Width="300" ResizeMode="NoResize" WindowStartupLocation="CenterScreen"  Loaded="Window_Loaded">
+        Title="SelectWindow" Height="310" Width="300" ResizeMode="NoResize" WindowStartupLocation="CenterScreen"  Loaded="Window_Loaded">
     <StackPanel Orientation="Vertical">
         <Image Source="/Resources/logo.png" Width="200"/>
+        <Button x:Name="button_routing" Content="Roteirização" FontSize="18" Margin="10,10,10,0" Click="button_routing_Click" IsEnabled="False"/>
         <Button x:Name="button_monitor" Content="MONITORAMENTO LIVE" FontSize="18" Margin="10,10,10,0" Click="button_monitor_Click"/>
         <Button x:Name="button_report" Content="ENTREGAS" FontSize="18" Margin="10,10,10,0" Click="button_report_Click"/>
         <Button x:Name="button_config" Content="Configuração" FontSize="18" Margin="10,10,10,0" Click="button_config_Click" IsEnabled="False"/>

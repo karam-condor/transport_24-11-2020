@@ -1,0 +1,56 @@
+﻿<Window x:Class="transport.RoutingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
+        xmlns:local="clr-namespace:transport"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Title="Roteirização" Height="450" Width="800" WindowStartupLocation="CenterScreen" ResizeMode="CanResize" WindowState="Maximized">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="135*"/>
+            <ColumnDefinition Width="517*"/>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="131*"/>
+        </Grid.ColumnDefinitions>
+        <Border Background="#373737" Grid.Column="2"/>
+        <StackPanel Orientation="Vertical" Grid.Column="3">
+            <TextBlock Text="N Carregamento" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBox x:Name="routingNumcarTextBox" Width="100"  Margin="5,0,0,0" VerticalAlignment="Center" TextChanged="routingNumcarTextBox_TextChanged"/>
+            <Border Background="#373737" Height="3" Margin="3,2,3,0"/>
+            <TextBlock Text="Dt montagem incial" VerticalAlignment="Center" Margin="5,0,0,0"/>
+            <DatePicker Name="dtmonini" VerticalAlignment="Center" Width="100" Margin="5"/>
+            <TextBlock Text="Dt montagem final" VerticalAlignment="Center" Margin="5,0,0,0"/>
+            <DatePicker Name="dtmonfin" VerticalAlignment="Center" Width="100" Margin="5"/>
+            <Border Background="#373737" Height="3" Margin="3,0,3,0"/>
+            <TextBlock Text="Dt saida incial" VerticalAlignment="Center" Margin="5,0,0,0"/>
+            <DatePicker Name="dtsaidini" VerticalAlignment="Center" Width="100" Margin="5"/>
+            <TextBlock Text="Dt saida final" VerticalAlignment="Center" Margin="5,0,0,0"/>
+            <DatePicker Name="dtsaidfin" VerticalAlignment="Center" Width="100" Margin="5"/>
+            <Border Background="#373737" Height="3" Margin="3,0,3,0"/>
+            <Button x:Name="routingSearchButton" Content="Pesquisar" Margin="5,2,5,0" Click="routingSearchButton_Click"/>
+            <Border Background="#373737" Height="1" Margin="3,1,3,1"/>
+            <RadioButton x:Name="routingRadioButton" Content="Roteirização" IsChecked="True"/>
+            <RadioButton x:Name="reportRadioButton" Content="Relatorio"/>
+        </StackPanel>
+        <DataGrid x:Name="routingCargasDataGrid" Grid.Column="0" GridLinesVisibility="All" HorizontalGridLinesBrush="#FF373737" SelectionMode="Single" IsReadOnly="True" 
+                                  CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2" MouseDoubleClick="routingCargasDataGrid_MouseDoubleClick" Grid.ColumnSpan="2">
+            <DataGrid.Resources>
+                <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
+                    <Setter Property="Background" Value="#01acc2" />
+                </Style>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
+                                    Color="Black"/>
+            </DataGrid.Resources>
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="{x:Type DataGridColumnHeader}">
+                    <Setter Property="FontWeight"  Value="Bold" />
+                    <Setter Property="HorizontalAlignment" Value="Center" />
+                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+        </DataGrid>
+    </Grid>
+</Window>

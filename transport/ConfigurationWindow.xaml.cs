@@ -37,7 +37,7 @@ namespace transport
         private void loadUseres()
         {
             DBConnection connection = new DBConnection();
-            usersTable = connection.readByAdapter("SELECT USUARIO,CASE CARGO WHEN 'MO'THEN 'APP' WHEN 'TR' THEN 'ROTINA(TRANSPORTE)' WHEN 'PD' THEN 'ROTINA(PENDENCIA)' END AS TIPO , TOKEN FROM LOGTRANSUSU WHERE CARGO <> 'AD' ORDER BY USUARIO", null, null);
+            usersTable = connection.readByAdapter("SELECT USUARIO,CASE CARGO WHEN 'MO'THEN 'APP' WHEN 'TR' THEN 'ROTINA(TRANSPORTE)' WHEN 'PD' THEN 'ROTINA(PENDENCIA)' END AS TIPO , TOKEN FROM "+tabelas.userTable+" WHERE CARGO <> 'AD' ORDER BY USUARIO", null, null);
             if(usersTable != null && usersTable.Rows.Count > 0)
             {
                 usersDataGrid.ItemsSource = usersTable.DefaultView;
@@ -62,7 +62,7 @@ namespace transport
                 if(result == MessageBoxResult.Yes)
                 {
                     DBConnection connection = new DBConnection();
-                    connection.write("DELETE FROM LOGTRANSUSU WHERE USUARIO =:USUARIO", new string[] { ":USUARIO" }, new string[] { user });
+                    connection.write("DELETE FROM "+ tabelas.userTable + " WHERE USUARIO =:USUARIO", new string[] { ":USUARIO" }, new string[] { user });
                     loadUseres();
                     MessageBox.Show("Usuario excluido com sucesso", "", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -85,7 +85,7 @@ namespace transport
                     if (result == MessageBoxResult.Yes)
                     {
                         DBConnection connection = new DBConnection();
-                        connection.write("UPDATE LOGTRANSUSU SET TOKEN=:TOKEN WHERE USUARIO =:USUARIO", new string[] { ":USUARIO", ":TOKEN" }, new string[] { user, token });
+                        connection.write("UPDATE "+ tabelas.userTable + " SET TOKEN=:TOKEN WHERE USUARIO =:USUARIO", new string[] { ":USUARIO", ":TOKEN" }, new string[] { user, token });
                         loadUseres();
                         MessageBox.Show("Token gerado com sucesso", "", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
@@ -147,12 +147,21 @@ namespace transport
             string CryptedPass = Crypter.Blowfish.Crypt(password);
             string token = Guid.NewGuid().ToString().Substring(0, 6);
             DBConnection connection = new DBConnection();
-            connection.write("INSERT INTO LOGTRANSUSU (USUARIO,SENHA,TOKEN,CARGO) VALUES (:USUARIO,:SENHA,CASE WHEN (:CARGO='TR' OR :CARGO='PD') THEN '000000' else :TOKEN end,:CARGO)", new string[] {":USUARIO",":SENHA",":TOKEN",":CARGO"}, new string[] {user,CryptedPass,token,getType()});
+            connection.write("INSERT INTO "+ tabelas.userTable + " (USUARIO,SENHA,TOKEN,CARGO) VALUES (:USUARIO,:SENHA,CASE WHEN (:CARGO='TR' OR :CARGO='PD') THEN '000000' else :TOKEN end,:CARGO)", new string[] {":USUARIO",":SENHA",":TOKEN",":CARGO"}, new string[] {user,CryptedPass,token,getType()});
             MessageBox.Show("Usuario foi adicionado com sucesso", "", MessageBoxButton.OK, MessageBoxImage.Information);
             userTextBox.Text = "";
             passworkTextBox.Password = "";
             loadUseres();
-        }        
+        }
+
+        private void latTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Methods.acceptJustFloatingNumbers(sender,e);
+        }
+
+
+        
+        
     }
 }
         

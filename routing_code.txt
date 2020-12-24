@@ -1,0 +1,603 @@
+using Microsoft.Maps.MapControl.WPF;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Threading;
+
+namespace transport
+{
+    //1132104 numcar where case not all pedidos geocogificados
+    /// <summary>
+    /// Interaction logic for RoutingWindow.xaml
+    /// </summary>
+    public partial class RoutingWindow : Window
+    {
+        private static readonly int timeLimit = 120;
+        int timeInSeconds = 0;
+        private string numcar, startingTime = null;
+        private bool checkCargaResult = false, checkGeocoded = false, checkGeocodedAll = false, checkRouted = false;
+        DataTable dtConsultaNotas, dtConsultaPendencia;
+        double lastdist, actualdist;
+        DispatcherTimer timer;
+        //Define map layers
+        MapLayer pushPinLayer, polylineLayer, routeLayer;
+        //Genetic algorithm parameters
+        private int _destinationCount = 0;
+        private const int _populationCount = 100;
+        private readonly LocationGA _startLocation = new LocationGA(-15.804799, -47.967552,0);
+        private readonly object _algorithmLock = new object();
+        private readonly object _geocodingThreadLock = new object();
+        private readonly object _revertThreadLock = new object();
+        private readonly object _lock = new object();
+        private TravellingSalesmanAlgorithm _algorithm;
+        private LocationGA[] _geoCodedLocations, _notGeocodedLocations,_entregasLocations;        
+        //____________________
+        private LocationGA[] _bestSolutionSoFar;
+        private volatile bool _mutateFailedCrossovers = true;
+        private volatile bool _mutateDuplicates = true;
+        private volatile bool _mustDoCrossovers = true;
+        private bool _closing = false;
+        private bool keepCheckingGA = true;
+        //_______________________Define Threads 
+        Thread geoCodingThread, routingThread, revertThread;
+
+
+
+        public RoutingWindow()
+        {
+            InitializeComponent();
+        }
+        private void textJustNumber_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Methods.acceptJustNumbers(sender, e);
+        }
+
+        private void routingGeocodeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (checkCargaResult)
+            {
+                Console.WriteLine("karam1313  " + checkBackGroundWorkInGoing());
+                if (checkBackGroundWorkInGoing() == false)
+                {
+                    setDefaultStartingTime();
+                    showMsg("Geocodificando endereços.....");
+                    geoCodingThread = new Thread(_GoecodedThread);
+                    geoCodingThread.Start();
+                    checkRouted = false;
+                    if(pushPinLayer != null)
+                    {
+                        mapView.Children.Remove(pushPinLayer);                        
+                    }
+                    if (polylineLayer != null)
+                    {
+                        mapView.Children.Remove(polylineLayer);
+                    }
+                    if(routeLayer != null)
+                    {
+                        mapView.Children.Remove(routeLayer);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Outro trabalho está sendo excutado, aguarde até o processo finalizar", "", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+            }
+        }
+
+
+        private void routingButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (checkBackGroundWorkInGoing() == false)
+            {
+                if (checkGeocodedAll)
+                {
+                    checkRouted = false;
+                    showMsg("Roteirizando.....");
+                    setTimer();
+                    routingThread = new Thread(_RoutingThread);
+                    routingThread.Start();
+                }
+                else
+                {
+                    MessageBox.Show("Para roteirizar, todos os endereços devem ser geocodificados.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Outro trabalho está sendo excutado, aguarde até o processo finalizar", "", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+        private void routingSearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (checkBackGroundWorkInGoing() == false)
+            {
+                if (checkGeocoded || checkGeocodedAll || checkRouted)
+                {
+                    MessageBoxResult messageBoxResult = MessageBox.Show($"Os dados de roteirização relacionados carregamento: {numcar} vão ser reinciados, deseja reinciar a consulta?", "", System.Windows.MessageBoxButton.YesNo);
+                    if (messageBoxResult == MessageBoxResult.Yes)
+                    {
+                        resetAll();
+                        searchNotas();
+                    }
+                }
+                else
+                {
+                    searchNotas();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Outro trabalho está sendo excutado, aguarde até o processo finalizar", "", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }
+
+        private void setDistinctEntregas()
+        {
+            var duplicates = _geoCodedLocations.AsEnumerable()
+                            .GroupBy(x => x.X)                            
+                            .Select(g => g.First())
+                            .ToArray();
+            duplicates = _geoCodedLocations.AsEnumerable()
+                         .GroupBy(x => x.Y)                
+                         .Select(g => g.First())
+                         .ToArray();
+            _geoCodedLocations = duplicates;
+            for (int i = 0; i < _geoCodedLocations.Length; i++)
+            {
+                _geoCodedLocations[i].originalIndex = i + 1;
+            }
+        }
+
+
+        private void setDefaultStartingTime()
+        {
+            startingTime = DateTime.Today.AddDays(1).ToString();
+            if (routingTimePicker.Value != null)
+            {
+                startingTime = routingTimePicker.Value.ToString();
+            }
+            startingTime = DateTimeOffset.Parse(startingTime).ToString();            
+        }
+
+        private void searchNotas()
+        {
+            routingSearchButton.IsEnabled = false;
+            numcar = numcarTextBoxRouting.Text;
+            if (numcarTextBoxRouting.Text != string.Empty)
+            {
+                DBConnection connection = new DBConnection();
+                dtConsultaNotas = connection.readByAdapter("SELECT A.NUMNOTA,A.CODCLI,A.NUMPED,A.NUMTRANSVENDA,B.CLIENTE,NVL(B.EMAILNFE, B.EMAIL) EMAIL_CLIENTE,B.ESTENT UF,B.MUNICENT CIDADE,B.BAIRROENT BAIRRO,B.ENDERENT ENDERECO,B.CEPENT CEP,P.OBSENTREGA1 OBS1,P.OBSENTREGA2 OBS2,P.OBSENTREGA3 OBS3,U.NOME RCA ,'' LAT,'' LONGT FROM PCNFSAID@WINT A,PCPEDC@WINT P,PCCLIENT@WINT B,PCUSUARI@WINT U WHERE A.CODCLI = B.CODCLI AND A.DTCANCEL IS NULL AND  A.NUMPED = P.NUMPED AND A.CODUSUR = U.CODUSUR AND A.CONDVENDA NOT IN (10) AND P.ORIGEMPED IN ('T','F','W') AND A.NUMCAR = :NUMCAR", new string[] { ":NUMCAR" }, new string[] { numcarTextBoxRouting.Text });
+                if (dtConsultaNotas != null && dtConsultaNotas.Rows.Count > 0)
+                {
+                    dtConsultaPendencia = connection.readByAdapter("select a.numnota ,a.codcli,b.cliente,s.numtransvenda,s.numped,NVL (b.emailnfe, b.email) email_cliente,b.estent uf,b.municent cidade,b.bairroent bairro,b.enderent endereco,b.cepent cep,a.obsentrega1 obs1,a.obsentrega2 obs2,a.obsentrega3 obs3,(SELECT nome FROM pcusuari@wint WHERE codusur = a.codusur) rca,c.codprocess,c.lat,c.longt,c.dtentrega,c.obsent FROM pcpedc@wint a, pcclient@wint b, logtransprocess c, pcnfsaid@wint s WHERE     s.codcli = b.codcli AND s.numcar = c.numcar AND s.numnota = c.numnota AND s.dtcancel IS NULL AND a.numped = s.numped AND s.condvenda NOT IN (10) AND a.origemped IN ('T', 'F', 'W') AND a.numcar IN (SELECT DISTINCT (numcar) FROM logtransprocess WHERE numtransvenda IN (SELECT numtransvenda FROM logtransprocess WHERE cargavincul = :NUMCAR AND status = 2)) AND a.numnota IN (SELECT numnota FROM logtransprocess a WHERE a.cargavincul = :NUMCAR AND a.status = 2)", new string[] { ":NUMCAR" }, new string[] { numcarTextBoxRouting.Text });
+                    routingNotaDataGridNotas.ItemsSource = dtConsultaNotas.DefaultView;
+                    checkCargaResult = true;
+                    if (dtConsultaPendencia != null && dtConsultaPendencia.Rows.Count > 0)
+                    {
+                        DataTable dt = dtConsultaPendencia.DefaultView.ToTable(false, new string[] { "codcli", "cliente", "numnota", "numtransvenda", "numped", "uf", "cidade", "bairro", "endereco", "cep", "obs1", "obs2", "obs3", "lat", "longt" });
+                        routingNotaDataGridPendencias.ItemsSource = dt.DefaultView;
+                    }
+                }
+                else
+                {
+                    checkCargaResult = false;
+                    MessageBox.Show("Numero de carregamento Invalido", "", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+            }
+            routingSearchButton.IsEnabled = true;
+        }
+
+        private void generateLocations()
+        {
+            int count1 = dtConsultaNotas.Rows.Count;
+            int count2 = dtConsultaPendencia.Rows.Count;
+            //should see this part            
+            int c = 0;
+            _destinationCount = count1 + count2;
+            int progressMount = 95 / _destinationCount;
+            _geoCodedLocations = new LocationGA[_destinationCount];
+            for (int i = 0; i < count1; i++)
+            {
+                _geoCodedLocations[i] = new LocationGA(Convert.ToString(dtConsultaNotas.Rows[i]["NUMNOTA"]), Convert.ToString(dtConsultaNotas.Rows[i]["CODCLI"]), Convert.ToString(dtConsultaNotas.Rows[i]["NUMPED"])
+                    , Convert.ToString(dtConsultaNotas.Rows[i]["NUMTRANSVENDA"]), Convert.ToString(dtConsultaNotas.Rows[i]["CLIENTE"]), Convert.ToString(dtConsultaNotas.Rows[i]["EMAIL_CLIENTE"]),
+                    Convert.ToString(dtConsultaNotas.Rows[i]["UF"]), Convert.ToString(dtConsultaNotas.Rows[i]["CIDADE"]), Convert.ToString(dtConsultaNotas.Rows[i]["BAIRRO"]),
+                    Convert.ToString(dtConsultaNotas.Rows[i]["ENDERECO"]), Convert.ToString(dtConsultaNotas.Rows[i]["CEP"]), Convert.ToString(dtConsultaNotas.Rows[i]["OBS1"]),
+                    Convert.ToString(dtConsultaNotas.Rows[i]["OBS2"]), Convert.ToString(dtConsultaNotas.Rows[i]["OBS3"]), Convert.ToString(dtConsultaNotas.Rows[i]["RCA"]), -1000, -1000, 1, i + 1);
+                MapsRequest.geocoding(ref _geoCodedLocations[i]);
+                Dispatcher.BeginInvoke(new Action(() => setProgressBarValue((i + 1) * progressMount)), DispatcherPriority.ApplicationIdle);
+            }
+            for (int i = 0; i < count2; i++)
+            {
+                c = i + count1;
+                _geoCodedLocations[c] = new LocationGA(Convert.ToString(dtConsultaPendencia.Rows[i]["NUMNOTA"]), Convert.ToString(dtConsultaPendencia.Rows[i]["CODCLI"]), Convert.ToString(dtConsultaPendencia.Rows[i]["NUMPED"])
+                    , Convert.ToString(dtConsultaPendencia.Rows[i]["NUMTRANSVENDA"]), Convert.ToString(dtConsultaPendencia.Rows[i]["CLIENTE"]), Convert.ToString(dtConsultaPendencia.Rows[i]["EMAIL_CLIENTE"]),
+                    Convert.ToString(dtConsultaPendencia.Rows[i]["UF"]), Convert.ToString(dtConsultaPendencia.Rows[i]["CIDADE"]), Convert.ToString(dtConsultaPendencia.Rows[i]["BAIRRO"]),
+                    Convert.ToString(dtConsultaPendencia.Rows[i]["ENDERECO"]), Convert.ToString(dtConsultaPendencia.Rows[i]["CEP"]), Convert.ToString(dtConsultaPendencia.Rows[i]["OBS1"]),
+                    Convert.ToString(dtConsultaPendencia.Rows[i]["OBS2"]), Convert.ToString(dtConsultaPendencia.Rows[i]["OBS3"]), Convert.ToString(dtConsultaPendencia.Rows[i]["RCA"]), Methods.doubleParser(Convert.ToString(dtConsultaPendencia.Rows[i]["LAT"])),
+                    Methods.doubleParser(Convert.ToString(dtConsultaPendencia.Rows[i]["LONGT"])), 2, c + 1);
+                Dispatcher.BeginInvoke(new Action(() => setProgressBarValue((c + 1) * progressMount)), DispatcherPriority.ApplicationIdle);
+            }
+            //setDistinctEntregas();
+        }
+
+        private void setProgressBarValue(int val)
+        {
+            routingProgressBar.Value = val;
+        }
+
+
+        private void generateDistanceMatrix()
+        {
+            if (_geoCodedLocations.Count() < 50)
+            {
+                LocationGA.distanceMatrix = MapsRequest.generateDistanceMatrix(_startLocation, _geoCodedLocations);
+                if (LocationGA.distanceMatrix == null)
+                {
+                    Methods.useDistanceMatrix = false;
+                }
+                else
+                {
+                    Methods.useDistanceMatrix = true;
+                }
+            }            
+        }
+
+        private void drawMarkers(LocationGA[] locs, bool showContent)
+        {
+            try
+            {
+                mapView.Children.Remove(pushPinLayer);
+            }
+            catch
+            {
+                MessageBox.Show("error");
+            }
+            pushPinLayer = new MapLayer();
+            Pushpin pin;
+            ControlTemplate template1 = (ControlTemplate)this.FindResource("CondorPushPin");
+            ControlTemplate template2 = (ControlTemplate)this.FindResource("customePushpinblack");
+            for (int i = -1; i < locs.Count(); i++)
+            {
+                pin = new Pushpin();
+                pin.PositionOrigin = PositionOrigin.BottomLeft;
+                if (i == -1)
+                {
+                    pin.Template = template1;
+                    pin.Background = System.Windows.Media.Brushes.DarkOrange;
+                    pushPinLayer.AddChild(pin, new Location(_startLocation.X, _startLocation.Y));
+                }
+                else
+                {                    
+                    pin.Template = template2;
+                    if (showContent)
+                    {                        
+                        pin.Content = i + 1;
+                    }
+                    pushPinLayer.AddChild(pin, new Location(locs[i].X, locs[i].Y));
+                }
+            }
+            mapView.Children.Add(pushPinLayer);
+        }
+
+        private void setBounds(LocationGA[] locs)
+        {
+            try
+            {
+                var numLat = Math.Abs((Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.X).Max())) - Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.X).Min()))) /
+                Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.X).Max())));
+                var numLongt = Math.Abs((Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.Y).Max())) - Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.Y).Min()))) /
+                Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.Y).Max())));
+                var box = new LocationRect(Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.X).Max())),
+                Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.Y).Min())), Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.X).Min())),
+                Methods.doubleParser(Convert.ToString(locs.AsEnumerable().Select(x => x.Y).Max())));
+                mapView.SetView(box);
+            }
+            catch (Exception ex)
+            {
+                mapView.Center = new Location(-15.7785, -47.9287);
+                mapView.ZoomLevel = 9;
+            }
+        }
+
+        private void drawPolyLine(LocationGA[] locs)
+        {
+            try
+            {
+                mapView.Children.Remove(polylineLayer);
+            }
+            catch
+            {
+
+            }
+            polylineLayer = new MapLayer();
+            MapPolyline polyline;
+            LocationCollection collection;
+            System.Windows.Media.Color color;
+            int red, blue, c = locs.Count() - 1;
+            for (int i = -1; i < locs.Count(); i++)
+            {
+                red = 255 * (i + 1) / locs.Length;
+                blue = 255 - red;
+                polyline = new MapPolyline();
+                collection = new LocationCollection();
+                color = System.Windows.Media.Color.FromRgb((byte)red, 0, (byte)blue);
+                polyline.Stroke = new SolidColorBrush(color);
+                polyline.StrokeThickness = 2;
+                polyline.Opacity = 0.7;
+                if (i == -1)
+                {
+                    collection.Add(new Location(_startLocation.X, _startLocation.Y));
+                    collection.Add(new Location(locs[0].X, locs[0].Y));
+                }
+                else if (i == c)
+                {
+                    collection.Add(new Location(locs[c].X, locs[c].Y));
+                    collection.Add(new Location(_startLocation.X, _startLocation.Y));
+                }
+                else
+                {
+                    collection.Add(new Location(locs[i].X, locs[i].Y));
+                    collection.Add(new Location(locs[i + 1].X, locs[i + 1].Y));
+                }
+                polyline.Locations = collection;
+                polylineLayer.Children.Add(polyline);
+            }
+            mapView.Children.Add(polylineLayer);
+        }
+
+
+        private void drawRoute()
+        {
+            try
+            {
+                mapView.Children.Remove(routeLayer);
+            }
+            catch
+            {
+
+            }
+            JArray PathArray = MapsRequest.generateRoute(_startLocation, _bestSolutionSoFar,startingTime);
+            if(PathArray != null)
+            {
+                routeLayer = new MapLayer();
+                MapPolyline mp = new MapPolyline();
+                mp.Stroke = System.Windows.Media.Brushes.Black;
+                mp.Opacity = 0.5;
+                mp.StrokeThickness = 3;
+                LocationCollection collection = new LocationCollection();
+                Location loc;
+                foreach(var obj in PathArray)
+                {
+                    loc = new Location((double)obj[0], (double)obj[1]);
+                    collection.Add(loc);
+                }
+                mp.Locations = collection;
+                routeLayer.Children.Add(mp);
+                mapView.Children.Add(routeLayer);
+            }
+        }
+
+        private bool checkBackGroundWorkInGoing()
+        {
+            bool check1 = false, check2 = false,check3 = false;
+            if (geoCodingThread != null)
+            {
+                check1 = geoCodingThread.IsAlive;
+            }
+            if (routingThread != null)
+            {
+                check2 = routingThread.IsAlive;
+            }
+            if (revertThread != null)
+            {
+                check3 = revertThread.IsAlive;
+            }
+            if (check1 == true || check2 == true || check3 == true)
+            {
+                return true;
+            }
+            
+            return false;
+        }
+
+
+        private void setDataGridRowIndex(object sender, DataGridRowEventArgs e)
+        {
+            e.Row.Header = (e.Row.GetIndex() + 1).ToString();
+        }
+
+        private void routingReverseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (checkRouted)
+            {
+                
+                if (checkBackGroundWorkInGoing() == false)
+                {                    
+                    Array.Reverse(_bestSolutionSoFar);
+                    drawMarkers(_bestSolutionSoFar, true);
+                    drawPolyLine(_bestSolutionSoFar);
+                    revertThread = new Thread(_RevertThread);                    
+                }
+                else
+                {
+                    MessageBox.Show("Outro trabalho está sendo excutado, aguarde até o processo finalizar", "", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+            }
+        }
+
+        private void setFilteredLocations()
+        {
+            if (_geoCodedLocations.AsEnumerable().Where(x => x.X != -1000 && x.Y != -1000).ToArray().Count() == _geoCodedLocations.Count())
+            {
+                checkGeocodedAll = true;
+            }
+            else
+            {
+                _notGeocodedLocations = _geoCodedLocations.AsEnumerable().Where(x => x.X != -1000 && x.Y != -1000).ToArray();
+                foreach (var loc in _notGeocodedLocations)
+                {
+                    Dispatcher.BeginInvoke(new Action(() => { pedidosSgeoListBox.Items.Add(loc.numped); }), DispatcherPriority.ApplicationIdle);
+                }
+                checkGeocodedAll = false;
+                MessageBox.Show("Não conseguimos geocodificar todos os pedidos");
+            }
+        }
+
+
+        private void disableEnableMapManipulation(bool check)
+        {
+            if (check)
+            {
+                mapView.SupportedManipulations = System.Windows.Input.Manipulations.Manipulations2D.None;
+            }
+            else
+            {
+                mapView.SupportedManipulations = System.Windows.Input.Manipulations.Manipulations2D.All;
+            }
+        }
+
+        private void showDistance(double distance)
+        {
+            routingTextBox.Text = Convert.ToString(distance);            
+        }
+
+        private void showMsg(string msg)
+        {
+            routingMsgTextBlock.Text = Convert.ToString(msg);
+        }
+
+        private void setTimer()
+        {
+            timeInSeconds = 0;
+            timer = new DispatcherTimer();
+            timer.Tick += new EventHandler(timer_tick);
+            timer.Interval = new TimeSpan(0, 0, 1);
+            timer.Start();
+        }
+        private void timer_tick(object sender, EventArgs e)
+        {
+            timeInSeconds++;
+            if (timeInSeconds == timeLimit)
+            {
+                timer.Stop();
+                timer = null;
+            }
+        }
+
+        private void resetAll()
+        {
+            numcar = "";
+            pedidosSgeoListBox.Items.Clear();
+            timeInSeconds = 0;
+            dtConsultaNotas = null;
+            dtConsultaPendencia = null;
+            _geoCodedLocations = null;
+            _notGeocodedLocations = null;
+            _bestSolutionSoFar = null;
+            LocationGA.distanceMatrix = null;
+            checkCargaResult = false; checkGeocoded = false; checkGeocodedAll = false; checkRouted = false;
+            mapView.Children.Clear();
+            routingNotaDataGridNotas.ItemsSource = new DataTable().DefaultView;
+            routingNotaDataGridPendencias.ItemsSource = new DataTable().DefaultView;
+        }
+
+        private void _GoecodedThread()
+        {
+            lock (_geocodingThreadLock)
+            {
+                generateLocations();
+                setFilteredLocations();
+                Dispatcher.BeginInvoke(new Action(() => setProgressBarValue(0)), DispatcherPriority.ApplicationIdle);
+                Dispatcher.BeginInvoke(new Action(() => drawMarkers(_geoCodedLocations, false)), DispatcherPriority.ApplicationIdle);
+                Dispatcher.BeginInvoke(new Action(() => showMsg("Endereços geocodificados com sucesso")), DispatcherPriority.ApplicationIdle);
+                Dispatcher.BeginInvoke(new Action(() => setBounds(_bestSolutionSoFar)), DispatcherPriority.ApplicationIdle);
+                checkGeocoded = true;
+            }
+        }
+
+        private void _RoutingThread()
+        {
+            generateDistanceMatrix();
+            _algorithm = new TravellingSalesmanAlgorithm(_startLocation, _geoCodedLocations, _populationCount);
+            _bestSolutionSoFar = _algorithm.GetBestSolutionSoFar().ToArray();
+            Dispatcher.BeginInvoke(new Action(() => drawPolyLine(_bestSolutionSoFar)), DispatcherPriority.ApplicationIdle);
+            Dispatcher.BeginInvoke(new Action(() => drawMarkers(_bestSolutionSoFar, true)), DispatcherPriority.ApplicationIdle);
+            Dispatcher.BeginInvoke(new Action(() => setBounds(_bestSolutionSoFar)), DispatcherPriority.ApplicationIdle);
+            int counter = 0;
+            int limit = _bestSolutionSoFar.Count() * 30;
+            if (limit < 200)
+            {
+                limit = 400;
+            }
+            while ((keepCheckingGA || counter < limit) && timeInSeconds < timeLimit && !_closing)
+            {                
+                lock (_algorithmLock)
+                {
+                    actualdist = Math.Round(LocationGA.GetTotalDistanceKM(_startLocation, _bestSolutionSoFar), 2);                    
+                    if (Math.Abs((actualdist - lastdist) / lastdist) <= 0.01)
+                    {
+                        keepCheckingGA = false;
+                    }
+                    else
+                    {
+                        keepCheckingGA = true;
+                    }
+                    _algorithm.MustMutateFailedCrossovers = _mutateFailedCrossovers;
+                    _algorithm.MustDoCrossovers = _mustDoCrossovers;
+                    _algorithm.Reproduce();
+                    if (_mutateDuplicates)
+                        _algorithm.MutateDuplicates();
+
+                    var newSolution = _algorithm.GetBestSolutionSoFar().ToArray();
+                    if (!newSolution.SequenceEqual(_bestSolutionSoFar))
+                    {
+                        lock (_lock)
+                        {
+                            _bestSolutionSoFar = newSolution;
+                            Dispatcher.BeginInvoke(new Action(() => drawPolyLine(_bestSolutionSoFar)), DispatcherPriority.ApplicationIdle);
+                            Dispatcher.BeginInvoke(new Action(() => drawMarkers(_bestSolutionSoFar, true)), DispatcherPriority.ApplicationIdle);                            
+                            Dispatcher.BeginInvoke(new Action(() => showDistance(actualdist)), DispatcherPriority.ApplicationIdle);
+                        }
+                        //Thread.Sleep(1000);
+                        if (keepCheckingGA == false)
+                        {
+                            counter++;
+                        }
+                        else
+                        {
+                            counter = 0;
+                        }
+                    }
+                    lastdist = actualdist;
+                }
+            }            
+            Dispatcher.BeginInvoke(new Action(() => drawRoute()), DispatcherPriority.ApplicationIdle);
+            Dispatcher.BeginInvoke(new Action(() => showMsg("Roteirizado com sucesso")), DispatcherPriority.ApplicationIdle);
+            checkRouted = true;
+        }
+
+        private void _RevertThread()
+        {
+            lock (_revertThreadLock)
+            {
+                Dispatcher.BeginInvoke(new Action(() => drawRoute()), DispatcherPriority.ApplicationIdle);
+            }                        
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            _closing = true;
+
+            lock (_lock)
+                Monitor.Pulse(_lock);
+        }
+    }
+}

@@ -18,63 +18,72 @@ namespace transport
     /// Interaction logic for PendenciaReport.xaml
     /// </summary>
     public partial class PendenciaReport : Window
-    {
-        private ReportsWindow reportWindInstance;        
-        private IList<Produto> listReport;
-        private string date, cod_pendencia, nf;
+    {        
+        private Object parentWindow;        
+        private IList<object> listReport;
+        private Dictionary<string,string> propList;
+        private string reportName,reportDataSetName;
+
+        
         public PendenciaReport()
         {
             InitializeComponent();
             _reportViewer.Load += ReportViewer_Load;
         }
 
+        public PendenciaReport(IList<object> listReport, Dictionary<string,string> props,string reportName,string reportDataSetName)
+        {
+            InitializeComponent();
+            this.propList = props;
+            this.listReport = listReport;
+            this.reportName = reportName;
+            this.reportDataSetName = reportDataSetName;
+            _reportViewer.Load += ReportViewer_Load;
+        }
 
         private void ReportViewer_Load(object sender, EventArgs e)
         {
             if (this.listReport.Count > 0)
-            {                
-                var dataSource = new Microsoft.Reporting.WinForms.ReportDataSource("DataSetSeparacao", listReport);
+            {
+                var dataSource = new Microsoft.Reporting.WinForms.ReportDataSource(reportDataSetName, listReport);
                 _reportViewer.LocalReport.DataSources.Add(dataSource);
-                _reportViewer.LocalReport.ReportEmbeddedResource = "transport.ReportMapaSeparacao.rdlc";                
-                Microsoft.Reporting.WinForms.ReportParameter nfParam = new Microsoft.Reporting.WinForms.ReportParameter("nf", this.nf);
-                Microsoft.Reporting.WinForms.ReportParameter pendParam = new Microsoft.Reporting.WinForms.ReportParameter("cod_pendencia", this.cod_pendencia);
-                _reportViewer.LocalReport.SetParameters(new Microsoft.Reporting.WinForms.ReportParameter[] { nfParam,pendParam});
+                _reportViewer.LocalReport.ReportEmbeddedResource = reportName;
+                Microsoft.Reporting.WinForms.ReportParameter[] repParams = new Microsoft.Reporting.WinForms.ReportParameter[propList.Count];
+                int counter = 0;
+                foreach (KeyValuePair<string, string> entry in propList)
+                {                   
+                    repParams[counter] = new Microsoft.Reporting.WinForms.ReportParameter(entry.Key, entry.Value);
+                    counter++;
+                }                
+                _reportViewer.LocalReport.SetParameters(repParams);
+                _reportViewer.SetDisplayMode(Microsoft.Reporting.WinForms.DisplayMode.PrintLayout);
                 _reportViewer.RefreshReport();                
             }
         }
-        public void setListReport(IList<Produto> list)
+        
+
+        public void setReportWindowInstance(Object parentWindow)
         {
-            this.listReport = list;
+            this.parentWindow = parentWindow;
         }
 
-        public void setReportWindowInstance(ReportsWindow reportsWindow)
-        {
-            this.reportWindInstance = reportsWindow;
-        }
+        
 
-        public void setDate(string date)
-        {
-            this.date = date;
-        }
+        
 
-        public void setNF(string nf)
-        {
-            this.nf = nf;
-        }
-
-        public void setCod_pendencia(string cod_pendencia)
-        {
-            this.cod_pendencia = cod_pendencia;
-        }
+        
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            if(reportWindInstance != null)
+            if(parentWindow != null)
             {
-                reportWindInstance.IsEnabled = true;
-                reportWindInstance.Activate();
-                reportWindInstance.Focusable = true;
+                ((Window)parentWindow).IsEnabled = true;
+                ((Window)parentWindow).Activate();
+                ((Window)parentWindow).Focusable = true;
             }
         }
     }
 }
+
+
+

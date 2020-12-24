@@ -25,6 +25,19 @@ namespace transport
         public MainWindow()
         {
             InitializeComponent();
+            setWindowTitle();
+        }
+
+        private void setWindowTitle()
+        {
+            if(tabelas.mode == true)
+            {
+                this.Title = "SPEED CONDOR PC (PRODUÇÃO)";
+            }
+            else
+            {
+                this.Title = "SPEED CONDOR PC (TESTE)";
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -36,8 +49,8 @@ namespace transport
             {
                 OracleParameter parameter = new OracleParameter();
 
-                DataTable dt = dbconnecttion.readByAdapter("SELECT * FROM LOGTRANSUSU WHERE USUARIO = :USUARIO AND CARGO IN ('AD','TR','PD')",
-                    new string[]{":USUARIO"}, new string[] {user});
+                DataTable dt = dbconnecttion.readByAdapter("SELECT * FROM "+ tabelas.userTable + " WHERE USUARIO = :USUARIO AND CARGO IN ('AD','TR','PD')",
+                    new string[]{ ":USUARIO" }, new string[] {user});
                 if (dt != null)
                 {
                     if (dt.Rows.Count > 0)
@@ -48,6 +61,7 @@ namespace transport
                             {
                                 Methods.loginType = Convert.ToString(dt.Rows[0]["CARGO"]);
                                 var selectWindow = new SelectWindow();
+                                Methods.username = user;
                                 selectWindow.Show();
                                 this.Close();
                             }

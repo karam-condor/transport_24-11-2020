@@ -1,0 +1,23 @@
+﻿<Window x:Class="transport.loadingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
+        xmlns:local="clr-namespace:transport"
+        mc:Ignorable="d"
+        Title="loadingWindow" Height="220" Width="250" WindowStartupLocation="Manual" ResizeMode="NoResize" WindowStyle="None" Loaded="Window_Loaded">
+    <Grid >
+        <Border Background="#373737">
+            <Border.Effect>
+                <DropShadowEffect/>
+            </Border.Effect>
+        </Border>
+        <StackPanel Orientation="Vertical" Background="#e5eff1" Margin="3,3,3,3">
+            <Image Source="/Resources/logo.png" Width="180" Margin="0,10,0,0"/>
+            <Image gif:ImageBehavior.RepeatBehavior="50x" Height="80"
+                gif:ImageBehavior.AnimatedSource="/Resources/loading.gif" />
+            <Button x:Name="cancelButton" Background="White" Content="Interromper" Margin="20,0,20,0" Click="Button_Click" Visibility="Hidden"/>
+        </StackPanel>
+    </Grid>
+</Window>

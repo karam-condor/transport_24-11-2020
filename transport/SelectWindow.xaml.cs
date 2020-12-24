@@ -50,6 +50,16 @@ namespace transport
             {
                 button_config.IsEnabled = true;
             }
+            if(Methods.loginType == "AD" || Methods.loginType == "TR")
+            {
+                button_routing.IsEnabled = true;
+            }
+        }
+
+        private void button_routing_Click(object sender, RoutedEventArgs e)
+        {            
+            RoutingWindow routingWindow = new RoutingWindow();
+            routingWindow.Show();
         }
     }
 }

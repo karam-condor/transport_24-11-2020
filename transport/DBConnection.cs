@@ -13,29 +13,37 @@ namespace transport
         OracleConnection conn;
         private void openConnection()
         {
-            conn = new OracleConnection(connStr);
-            conn.Open();                     
+            try
+            {
+                conn = new OracleConnection(connStr);
+                conn.Open();                                    
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            
         }
 
         public void write(String sql, String[] parasNames , String[] paramsValues)
         {
             try
             {
-                openConnection();
-                OracleCommand cmd = new OracleCommand(sql, conn);
-                if (parasNames != null && paramsValues != null)
-                {
-                    cmd.BindByName = true;
-                    if (parasNames != null && paramsValues != null)
-                    {
-                        for (int i = 0; i < paramsValues.Length; i++)
-                        {
-                            cmd.Parameters.Add(parasNames[i], paramsValues[i]);
-                        }
-                    }
-                }
-                cmd.ExecuteNonQuery();
-                closeConnection();
+              openConnection();
+              OracleCommand cmd = new OracleCommand(sql, conn);
+              if (parasNames != null && paramsValues != null)
+              {
+                  cmd.BindByName = true;
+                  if (parasNames != null && paramsValues != null)
+                  {
+                      for (int i = 0; i < paramsValues.Length; i++)
+                      {
+                          cmd.Parameters.Add(parasNames[i], paramsValues[i]);
+                      }
+                  }
+              }
+              cmd.ExecuteNonQuery();
+              closeConnection();
             }
             catch(OracleException ex)
             {
@@ -46,30 +54,29 @@ namespace transport
 
         public DataTable readByAdapter(String sql, String[] parasNames, String[] paramsValues)
         {
-            //try
-            //{
-                DataTable dt = new DataTable();
-                openConnection();
-                OracleCommand cmd = new OracleCommand(sql, conn);
-
-                cmd.BindByName = true;
-                if (parasNames != null && paramsValues != null)
-                {
-                    for (int i = 0; i < paramsValues.Length; i++)
-                    {
-                        cmd.Parameters.Add(parasNames[i], paramsValues[i]);
-                    }
-                }
-                OracleDataAdapter adapter = new OracleDataAdapter(cmd);
-                adapter.Fill(dt);
-                closeConnection();
-                return dt;
-            //}
-            //catch(OracleException ex)
-            //{
-            //    MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
-            //    return null;
-            //}            
+            try
+            {
+              DataTable dt = new DataTable();
+              openConnection();
+              OracleCommand cmd = new OracleCommand(sql, conn);                
+              cmd.BindByName = true;
+              if (parasNames != null && paramsValues != null)
+              {
+                  for (int i = 0; i < paramsValues.Length; i++)
+                  {
+                      cmd.Parameters.Add(parasNames[i], paramsValues[i]);
+                  }
+              }
+              OracleDataAdapter adapter = new OracleDataAdapter(cmd);                
+              adapter.Fill(dt);
+              closeConnection();
+              return dt;
+            }
+            catch(OracleException ex)
+            {
+                MessageBox.Show(ex.Message, "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            }            
         }
 
 

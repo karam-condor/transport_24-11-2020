@@ -18,5 +18,6 @@ namespace transport
         public string CODFAB { get; set; }
         public string UNIDADE { get; set; }
         public string EMBALAGEM { get; set; }
+        public string MARCA { get; set; }        
     }
 }

@@ -4,6 +4,29 @@
              xmlns:local="clr-namespace:transport"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <Style x:Key="CustomInfoboxStyle" TargetType="ToolTip">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Border CornerRadius="5">
+                            <Border.Background>
+                                <SolidColorBrush Color="Black" Opacity="0.5"/>
+                            </Border.Background>
+                            <ContentPresenter Margin="5">
+                                <ContentPresenter.Content>
+                                    <StackPanel Margin="5" MaxWidth="200">
+                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" Foreground="White"/>
+                                        <TextBlock Text="{Binding Description}" Foreground="White" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </ContentPresenter.Content>
+                            </ContentPresenter>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

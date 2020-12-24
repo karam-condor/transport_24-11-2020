@@ -6,7 +6,8 @@
         xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
         xmlns:local="clr-namespace:transport"
         mc:Ignorable="d"
-        Title="Entregas" Height="600" Width="1200" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">    <Window.Resources>
+        Title="Entregas" Height="600" Width="1200" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+    <Window.Resources>
         <ControlTemplate x:Key="CutomPushpinTemplate2" TargetType="m:Pushpin">
             <Grid x:Name="ContentGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
@@ -68,34 +69,36 @@
                             <ColumnDefinition Width="18*"/>
                             <ColumnDefinition Width="169*"/>
                             <ColumnDefinition Width="60*"/>
-                            <ColumnDefinition Width="308*"/>
+                            <ColumnDefinition Width="53*"/>
+                            <ColumnDefinition Width="255*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock HorizontalAlignment="Left" Margin="6,8,0,0" TextWrapping="Wrap" Text="Carregamento" VerticalAlignment="Top" Height="16" Width="80"/>
                         <TextBlock HorizontalAlignment="Left" Margin="6,38,0,0" TextWrapping="Wrap" Text="Cod motorista" VerticalAlignment="Top" Height="16" Width="76"/>
                         <TextBlock HorizontalAlignment="Left" Margin="0,8,0,0" TextWrapping="Wrap" Text="Data saida" VerticalAlignment="Top" Height="16" Width="60" Grid.Column="4"/>
                         <TextBlock Margin="0,38,0,0" TextWrapping="Wrap" Text="Data final" VerticalAlignment="Top" Height="16" Grid.Column="4"/>
                         <TextBlock HorizontalAlignment="Left" Margin="6,64,0,0" TextWrapping="Wrap" Text="Motorista" VerticalAlignment="Top" Height="16" Width="58"/>
-                        <TextBlock HorizontalAlignment="Left" Margin="6,92,0,0" TextWrapping="Wrap" Text="KM" VerticalAlignment="Top" Height="16" Width="18"/>
-                        <TextBox x:Name="cargaTextBox" Height="26" Margin="0,6,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15" TextChanged="textJustNumber_TextChanged" Grid.Column="1" Grid.ColumnSpan="3" />
+                        <TextBlock HorizontalAlignment="Left" Margin="6,92,0,0" TextWrapping="Wrap" Text="KM" VerticalAlignment="Top" Height="16" Width="18" Visibility="Hidden"/>
+                        <TextBox x:Name="cargaTextBox" Height="26" Margin="0,6,44,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15" TextChanged="textJustNumber_TextChanged" Grid.Column="1" Grid.ColumnSpan="3" />
                         <TextBox x:Name="codMotoTextBox" Height="26" Margin="0,35,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="3"/>
                         <TextBox x:Name="motoTextBox" Height="26" Margin="0,62,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="3"/>
 
-                        <TextBox x:Name="kmTextBox" Height="26" Margin="0,90,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="3"/>
-                        <TextBox x:Name="dtFinalTextBox" Height="26" Margin="0,35,30,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="5"/>
-                        <TextBox x:Name="dtIncialTextBox" Height="26" Margin="0,4,30,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="5"/>
-                        <Rectangle Stroke="#373737" StrokeThickness="2" Grid.ColumnSpan="6" />
-                        <Button x:Name="searchButton" Content="Pesquisar" Margin="165,90,0,0" VerticalAlignment="Top" Height="25"  Click="searchButton_Click" Grid.Column="5" HorizontalAlignment="Left" Width="113"/>
+                        <TextBox x:Name="kmTextBox" Height="26" Margin="0,90,16,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="3" Visibility="Hidden"/>
+                        <TextBox x:Name="dtFinalTextBox" Height="26" Margin="0,35,30,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="5" Grid.ColumnSpan="2"/>
+                        <TextBox x:Name="dtIncialTextBox" Height="26" Margin="0,4,30,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15"   IsEnabled="False" Grid.Column="5" Grid.ColumnSpan="2"/>
+                        <Rectangle Stroke="#373737" StrokeThickness="2" Grid.ColumnSpan="7" />
+                        <Button x:Name="searchButton" Content="Pesquisar" Margin="110,90,0,0" VerticalAlignment="Top" Height="25"  Click="searchButton_Click" Grid.Column="6" HorizontalAlignment="Left" Width="113"/>
+                        <Button x:Name="finalizeTravelButton" Content="Fin" Margin="130,6,0,0" VerticalAlignment="Top" Height="26"  Click="finalizeTravelButton_Click" Grid.Column="3" HorizontalAlignment="Left" Width="23"/>
                     </Grid>
                     <Grid Grid.Row="2" Grid.ColumnSpan="3">
-                        <TextBlock Text="Produtos" Padding="3,0,0,0"  FontSize="12" Grid.Row="4"/>
-                        <DataGrid x:Name="notaDataGrid" Grid.Row="5" GridLinesVisibility="All" HorizontalGridLinesBrush="#FF373737" SelectionMode="Extended" IsReadOnly="True" 
-                                  CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2">
+                        <TextBlock Text="Produtos:" Padding="3,0,0,0"  FontSize="12" Grid.Row="4"/>
+                        <DataGrid x:Name="notaDataGrid" Grid.Row="5" GridLinesVisibility="All" HorizontalGridLinesBrush="#FF373737" SelectionMode="Single" IsReadOnly="True" 
+                                  CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2" >
                             <DataGrid.Resources>
                                 <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
                                     <Setter Property="Background" Value="#01acc2" />
                                 </Style>
                                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
-                                    Color="#01acc2"/>
+                                    Color="Black"/>
                             </DataGrid.Resources>
                             <DataGrid.ColumnHeaderStyle>
                                 <Style TargetType="{x:Type DataGridColumnHeader}">
@@ -130,24 +133,28 @@
                             <ColumnDefinition Width="457*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox x:Name="notaTextBox" Height="26" Margin="46.5,4,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15" TextChanged="textJustNumber_TextChanged" Grid.Column="2" HorizontalAlignment="Left" Width="141"/>
-                        <Button x:Name="searchButtonNotas" Content="Pesquisar" Margin="343,45,0,0" VerticalAlignment="Top" Height="25" Click="searchButtonNotas_Click" Grid.Column="5" HorizontalAlignment="Left" Width="102" Grid.Row="0"/>
-                        <TextBox x:Name="processTextBox" Height="26" Margin="46.5,35,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="15" TextChanged="textJustNumber_TextChanged" Grid.Column="2" HorizontalAlignment="Left" Width="141" Grid.Row="0"/>
-                        <TextBlock Margin="5,41,0,0" TextWrapping="Wrap" Text="Cod occurencia" VerticalAlignment="Top" RenderTransformOrigin="0.733,2.167" Grid.ColumnSpan="3" Height="16" HorizontalAlignment="Left" Width="82" Grid.Row="0"/>
+                        <TextBox x:Name="notaTextBox" Height="16" Margin="47,9,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="11" TextChanged="textJustNumber_TextChanged" Grid.Column="2" HorizontalAlignment="Left" Width="140"/>
+                        <Button x:Name="searchButtonNotas" Content="Pesquisar" Margin="351,55,0,0" VerticalAlignment="Top" Height="25" Click="searchButtonNotas_Click" Grid.Column="5" HorizontalAlignment="Left" Width="102" Grid.Row="0"/>
+                        <TextBox x:Name="processTextBox"  Height="15" Margin="47,28,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="11" TextChanged="textJustNumber_TextChanged" Grid.Column="2" HorizontalAlignment="Left" Width="140" Grid.Row="0"/>
+                        <TextBlock Margin="5,26,0,0" TextWrapping="Wrap" Text="Cod occurencia" VerticalAlignment="Top" RenderTransformOrigin="0.733,2.167" Grid.ColumnSpan="3" Height="16" HorizontalAlignment="Left" Width="82" Grid.Row="0"/>
                         <DatePicker x:Name="dtIncialPicker" Margin="3,4,0,0" Grid.Column="5" HorizontalAlignment="Left" Width="121" Height="26" VerticalAlignment="Top" Grid.Row="0"/>
                         <TextBlock HorizontalAlignment="Left" Margin="22,8,0,0" TextWrapping="Wrap" Text="Dt.Incial" VerticalAlignment="Top" Grid.Column="3" Grid.ColumnSpan="2" Height="16" Width="43" Grid.Row="0"/>
                         <TextBlock HorizontalAlignment="Left" Margin="22,40,0,0" TextWrapping="Wrap" Text="Dt.final" VerticalAlignment="Top" Grid.Column="3" Grid.ColumnSpan="2" Height="16" Width="38" Grid.Row="0"/>
                         <Rectangle Grid.ColumnSpan="3" Margin="0,5,158,185" Grid.Row="1"/>
+                        <TextBox x:Name="carga2TextBox" Height="15" Margin="47,46,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" FontSize="11" TextChanged="textJustNumber_TextChanged" Grid.Column="2" HorizontalAlignment="Left" Width="140" Grid.Row="0"/>
+                        <TextBlock Margin="5,44,0,0" TextWrapping="Wrap" Text="Num Carga" VerticalAlignment="Top" RenderTransformOrigin="0.733,2.167" Grid.ColumnSpan="3" Height="16" HorizontalAlignment="Left" Width="108" Grid.Row="0"/>
                         <DatePicker x:Name="dtFinalPicker" Margin="3,35,0,0" Grid.Column="5" HorizontalAlignment="Left" Width="121" Height="26" VerticalAlignment="Top" Grid.Row="0"/>
                         <TextBlock Margin="5,8,0,0" TextWrapping="Wrap" Text="Nota fiscal" VerticalAlignment="Top" Grid.ColumnSpan="3" Height="16" HorizontalAlignment="Left" Width="56" Grid.Row="0"/>
 
-                        <GroupBox Header="Filtros" Height="100" VerticalAlignment="Top" Grid.ColumnSpan="6" Margin="0,-15,0,0" Grid.Row="0" Grid.RowSpan="2" >
-                        </GroupBox>
+
                         <CheckBox x:Name="perfeitoCheckBox" Content="S/divergencia" FontSize="8"  Grid.Column="5" Margin="127,4,0,0" IsChecked="True" HorizontalAlignment="Left" Width="93" Height="20" VerticalAlignment="Top" Grid.Row="0" />
-                        <CheckBox x:Name="devolucaoTotalCheckBox" Content="Devolução total" FontSize="8" Grid.Column="5" Margin="127,24,0,0" IsChecked="True" HorizontalAlignment="Left" Width="93" Height="22" VerticalAlignment="Top" Grid.Row="0"/>
-                        <CheckBox x:Name="reentregaCheckBox" Content="Re-entrega" FontSize="8" Grid.Column="5" Margin="127,46,0,0" IsChecked="True" HorizontalAlignment="Left" Width="93" Height="24" VerticalAlignment="Top" Grid.Row="0"/>
-                        <CheckBox x:Name="devolucaoParcialCheckBox" Content="Devolução parcial ou pendencia" Grid.Column="5" FontSize="8" Margin="225,4,0,0" IsChecked="True" HorizontalAlignment="Left" Width="206" Height="21" VerticalAlignment="Top" Grid.Row="0"/>
+                        <CheckBox x:Name="devolucaoTotalCheckBox" Content="Devolução total" FontSize="8" Grid.Column="5" Margin="127,24,0,0" IsChecked="True" HorizontalAlignment="Left" Width="93" Height="22" VerticalAlignment="Top" Grid.Row="0" />
+                        <CheckBox x:Name="reentregaCheckBox" Content="Re-entrega" FontSize="8" Grid.Column="5" Margin="127,46,0,0" IsChecked="True" HorizontalAlignment="Left" Width="93" Height="24" VerticalAlignment="Top" Grid.Row="0" />
+                        <CheckBox x:Name="devolucaoParcialCheckBox" Content="Devolução parcial ou pendencia" Grid.Column="5" FontSize="8" Margin="225,4,0,0" IsChecked="True" HorizontalAlignment="Left" Width="206" Height="21" VerticalAlignment="Top" Grid.Row="0" />
+                        <CheckBox x:Name="dtEmissaoCheckBox" Content="Pendencia não emitida" Grid.Column="5" FontSize="8" Margin="225,24,0,0"  HorizontalAlignment="Left" Width="206" Height="21" VerticalAlignment="Top" Grid.Row="0" IsEnabled="False"/>
+                        <CheckBox x:Name="dtVincularCheckBox" Content="Notas não vinculadas" FontSize="8" Margin="225,44,0,0"  HorizontalAlignment="Left" Width="97" Height="24" VerticalAlignment="Top" Grid.Column="5" IsEnabled="False"/>
                         <GroupBox Header="Informação de entrega" Grid.ColumnSpan="6" Height="177" VerticalAlignment="Top" Grid.Row="1" HorizontalAlignment="Left" Width="564" Margin="0,5,0,0">
+                            <Button x:Name="buttonLoadImages" Content="Mostrar anexos" Margin="0,0,-2,11" Click="buttonLoadImages_Click" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="208"/>
                         </GroupBox>
 
                         <Grid Grid.Row="1">
@@ -201,7 +208,7 @@
                             <RowDefinition Height="15"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Text="Notas" Padding="3,0,0,0"  FontSize="12" Grid.Row="0"/>
+                        <TextBlock x:Name="countNotasTextBlock" Padding="3,0,0,0"  FontSize="12" Grid.Row="0"><Run Text="Notas"/><Run Text=" :"/></TextBlock>
                         <DataGrid x:Name="notaDataGrid2" Grid.Row="1"   GridLinesVisibility="All" HorizontalGridLinesBrush="Black" SelectionMode="Extended" IsReadOnly="True" 
                                   CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2" SelectedCellsChanged="notaDataGrid2_SelectedCellsChanged" CanUserSortColumns="False"
                                   MouseDoubleClick="notaDataGrid2_MouseDoubleClick">
@@ -210,7 +217,7 @@
                                     <Setter Property="Background" Value="#01acc2" />
                                 </Style>
                                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
-                                    Color="#01acc2"/>
+                                    Color="Black"/>
                             </DataGrid.Resources>
 
                             <DataGrid.ColumnHeaderStyle>
@@ -223,15 +230,15 @@
 
 
                         </DataGrid>
-                        <TextBlock Text="Produtos" Padding="3,0,0,0"  FontSize="12" Grid.Row="2"/>
-                        <DataGrid x:Name="prodDataGrid" Grid.Row="3" GridLinesVisibility="all" HorizontalGridLinesBrush="#FF373737" SelectionMode="Extended" IsReadOnly="True" 
+                        <TextBlock x:Name="countProdsTextBlock" Text="Produtos" Padding="3,0,0,0"  FontSize="12" Grid.Row="2"/>
+                        <DataGrid x:Name="prodDataGrid" Grid.Row="3" GridLinesVisibility="all" HorizontalGridLinesBrush="#FF373737" SelectionMode="Single" IsReadOnly="True" 
                                   CanUserAddRows="False" AlternatingRowBackground="#727689" BorderBrush="Black" BorderThickness="2">
                             <DataGrid.Resources>
                                 <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
                                     <Setter Property="Background" Value="#01acc2" />
                                 </Style>
                                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
-                                    Color="#01acc2"/>
+                                    Color="Black"/>
                             </DataGrid.Resources>
                             <DataGrid.ColumnHeaderStyle>
                                 <Style TargetType="{x:Type DataGridColumnHeader}">

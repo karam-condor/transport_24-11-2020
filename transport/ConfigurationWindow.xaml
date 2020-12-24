@@ -13,7 +13,7 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Orientation="Vertical" Grid.Column="1">
-            <Button x:Name="deleteButton" Content="Apagar" Margin="0,5,0,0" Click="deleteButton_Click"/>
+            <Button x:Name="deleteButton" Content="Apagar" Margin="0,5,0,0" Click="deleteButton_Click" />
             <Button x:Name="tokenButton" Content="Gerar novo token" Margin="0,5,0,0" Click="tokenButton_Click"/>
             <TextBlock Background="#373737" Text="Novo usuario" Foreground="AliceBlue" Padding="3,0,0,0"/>
             <TextBlock Text="Usuario" Padding="1,0,0,0"/>
@@ -23,8 +23,8 @@
             <TextBlock Text="Tipo" Padding="1,0,0,0"/>
             <ComboBox x:Name="typeComboBox">
                 <ComboBoxItem Content="APP"/>
-                <ComboBoxItem Content="ROTINA(TRANSPORTE)"/>
-                <ComboBoxItem Content="ROTINA(PENDENCIA)"/>
+                <ComboBoxItem Content="PC(TRANSPORTE)"/>
+                <ComboBoxItem Content="PC(PENDENCIA)"/>
             </ComboBox>
             <Button x:Name="saveButton" Content="Adicionar" Margin="0,5,0,0" Click="saveButton_Click"/>
         </StackPanel>
@@ -35,7 +35,7 @@
                     <Setter Property="Background" Value="#01acc2" />
                 </Style>
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" 
-                                    Color="#01acc2"/>
+                                    Color="Black"/>
             </DataGrid.Resources>
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="{x:Type DataGridColumnHeader}">
